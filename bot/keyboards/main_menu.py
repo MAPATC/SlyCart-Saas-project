@@ -1,18 +1,12 @@
-from lexicons.lexicon import MAIN_MENU
 from aiogram.types import (InlineKeyboardButton, 
-                           InlineKeyboardMarkup, 
-                           Message,
-                           CallbackQuery)
+                           InlineKeyboardMarkup)
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.filters import CommandStart
 
-router: Router = Router(name=__name__)
+def inline_markup(menu: dict) -> InlineKeyboardMarkup:
+    inl_kb_markup = InlineKeyboardBuilder()
 
-def inline_markup() -> InlineKeyboardMarkup:
-    inl_kb_markup =InlineKeyboardBuilder()
-
-    buttons = [InlineKeyboardButton(text=menu['text'], callback_data=menu_cb) 
-               for menu_cb, menu in MAIN_MENU.items()]
+    buttons = [InlineKeyboardButton(text=menu['text'], callback_data=f"menu:{menu_cb}") 
+               for menu_cb, menu in menu.items()]
 
     inl_kb_markup.row(*buttons, width=1)
 
