@@ -5,7 +5,7 @@ from aiogram.types import (Message,
                            InlineKeyboardButton)
 from lexicons.lexicon import MAIN_MENU
 from aiogram.filters import CommandStart
-from keyboards.main_menu import inline_markup
+from keyboards.main_menu import inline_markup, MainMenuCBdata
 
 
 router: Router = Router(name=__name__)
@@ -24,11 +24,10 @@ async def main_menu_message(update: Message | CallbackQuery):
             reply_markup=inline_markup(MAIN_MENU)
         )
     
-@router.callback_query(F.data.startswith("menu:"))
-async def callback_menu_action(callback: CallbackQuery):
+@router.callback_query(MainMenuCBdata.filter())
+async def callback_menu_action(callback: CallbackQuery, callback_data: MainMenuCBdata):
 
-    menu_key: str = callback.data.split(":")[-1]
-    menu_desc: dict[str, str] = MAIN_MENU.get(menu_key)
+    menu_desc: dict[str, str] = MAIN_MENU.get(callback_data.menu)
 
     await callback.message.edit_text(
         text=menu_desc['description'],
