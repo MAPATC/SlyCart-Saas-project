@@ -3,9 +3,10 @@ from aiogram.types import (Message,
                            CallbackQuery, 
                            InlineKeyboardMarkup, 
                            InlineKeyboardButton)
-from lexicons.lexicon import MAIN_MENU
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from lexicons.lexicon import MAIN_MENU, TARIFF
 from aiogram.filters import CommandStart
-from keyboards.main_menu import inline_markup, MainMenuCBdata
+from keyboards.main_menu import inline_markup, inline_tariffs_markup, MainMenuCBdata, TariffCBdata
 
 
 router: Router = Router(name=__name__)
@@ -29,12 +30,21 @@ async def callback_menu_action(callback: CallbackQuery, callback_data: MainMenuC
 
     menu_desc: dict[str, str] = MAIN_MENU.get(callback_data.menu)
 
-    await callback.message.edit_text(
-        text=menu_desc['description'],
-        reply_markup=InlineKeyboardMarkup(
-            inline_keyboard=[
-                [InlineKeyboardButton(text="Назад", 
-                                callback_data="main")]
-            ]
+    if callback_data.menu == "tariff":
+        await callback.message.edit_text(
+            text=menu_desc['description'],
+            reply_markup=inline_tariffs_markup(TARIFF, callback_data.menu)
         )
-    )
+        print(callback_data.menu)
+
+    else:
+       print(callback_data.menu)    
+       await callback.message.edit_text(
+            text=menu_desc['description'],
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(text="Назад", 
+                                    callback_data="main")]
+                ]
+            )
+        )

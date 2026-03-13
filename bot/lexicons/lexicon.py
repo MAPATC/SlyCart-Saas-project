@@ -35,6 +35,12 @@ DESCRIPTION: dict[str, str] = {
     "webapp": "tgwebapp"
 }
 
+TARIFF: dict[str, str] = {
+    "free": "Бесплатный тариф",
+    "advanced": "Тариф Бизнес",
+    "premium": "Тариф Ультима"
+}
+
 
 MAIN_MENU: dict[str, MenuValue] = {
     "about": {"text" : "О нас", "description": DESCRIPTION['about_description']},
