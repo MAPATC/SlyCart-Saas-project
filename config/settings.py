@@ -77,12 +77,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'saas_db',
-        'USER': 'vlad',
-        'PASSWORD': 'gaymaster123',
-        'HOST': "127.0.0.1",
-        'POST': "5432",
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
