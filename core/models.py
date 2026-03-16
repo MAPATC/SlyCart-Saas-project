@@ -40,7 +40,7 @@ class Tariff(models.Model):
         verbose_name_plural = "Тарифы" # Чтобы в админке не было "Тарифs"
 
     def __str__(self):
-        return f'{self.plan} -> {self.price}:{self.limits} '
+        return f'Тариф: {self.plan} -> Цена: {self.price}₽, Лимит: {self.limits} '
     
     
 class Shop(models.Model):
