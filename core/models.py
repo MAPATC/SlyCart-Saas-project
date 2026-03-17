@@ -17,15 +17,15 @@ class TelegramUser(models.Model):
         verbose_name="Роль"
     )
 
-    
+    reg_date = models.DateField(auto_now_add=True) #Автодобавление даты регистрации
+
+
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи" 
-
-    reg_date = models.DateField(auto_now_add=True) #Автодобавление даты регистрации
-
+    
     def __str__(self):
-        return f"{self.user_id} ({self.role})"
+        return f"Пользователь: {self.user_id} ({self.role})"
     
 
 class Tariff(models.Model):
@@ -33,7 +33,8 @@ class Tariff(models.Model):
     limits = models.PositiveIntegerField(verbose_name="Лимиты")
     # max_digit - максимальное количество цифр в числе, decimal_places - знаки после запятой
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена тарифа")
-
+    description = models.TextField(verbose_name="Описание тарифа", blank=True, null=True)
+    # blank позволяет быть полю пустым, а null будет сохранять пустые значение как NULL
 
     class Meta:
         verbose_name = "Тариф"
@@ -58,7 +59,7 @@ class Shop(models.Model):
         verbose_name_plural = "Магазины"
         
     def __str__(self):
-        return f"{self.owner}:{self.tariff} ({self.shop_name} link = {self.shop_link})"
+        return f"Владелец/тариф: {self.owner.user_id} : {self.tariff} (Магазин: {self.shop_name}, link = {self.shop_link})"
     
 class Product(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
@@ -67,11 +68,11 @@ class Product(models.Model):
     description = models.TextField(verbose_name="Описание товара")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена товара")
     is_active = models.BooleanField(verbose_name="Доступен ли товар", default=True)
-    stock = models.PositiveIntegerField(verbose_name="Осталось товара", default=0)
+    stock = models.PositiveIntegerField(verbose_name="Осталось товара", default=1)
 
     class Meta:
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
 
     def __str__(self):
-        return f"{self.title}:{self.price}:{self.stock} is_active:{self.is_active}"
+        return f"Товар/цена/кол-во: {self.title} : {self.price} : {self.stock}. В наличии: {self.is_active}"
