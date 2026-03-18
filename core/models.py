@@ -48,7 +48,7 @@ class Shop(models.Model):
     owner = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, verbose_name="Владелец") # Если удалим владельца, удалиться вся информация о магазине(CASCADE)
     # Все о пользователе(тариф, дата регистрации, телеграм айди и т.д)
     # on_delete работает на тех, на кого мы ссылаемся
-    tariff = models.ForeignKey(Tariff, on_delete=models.SET_NULL, null=True, verbose_name="Тариф") # Если удалим магазин, то просто поставим NULL без удаления всех данных о тарифе
+    tariff = models.ForeignKey(Tariff, on_delete=models.SET_NULL, null=True, verbose_name="Тариф") # Если удалим тариф, то просто поставим NULL в колонке тарифа
     # Все о тарифах
     shop_name = models.CharField(max_length=100, verbose_name="Название магазина")
     shop_link = models.SlugField(unique=True, verbose_name="Ссылка (slug)")
@@ -73,6 +73,12 @@ class Product(models.Model):
     class Meta:
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
+        indexes = [
+            models.Index(fields=["is_active"], name="goods_in_stock_idx"),
+            models.Index(fields=["shop", "price"], name="sorted_prices_idx")
+            # В name нельзя ставить пробелы, так как это технические имена
+            # Можно было бы поставить в поля db_index=True, но этот вариант лучше
+        ]
 
     def __str__(self):
         return f"Товар/цена/кол-во: {self.title} : {self.price} : {self.stock}. В наличии: {self.is_active}"
