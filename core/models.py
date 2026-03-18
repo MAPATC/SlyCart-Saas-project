@@ -77,6 +77,7 @@ class Product(models.Model):
             models.Index(fields=["is_active"], name="goods_in_stock_idx"),
             models.Index(fields=["shop", "price"], name="sorted_prices_idx")
             # В name нельзя ставить пробелы, так как это технические имена
+            # Индексы нужны для оптимизации запросов, без индексов базе данных приходиться перебирать все
             # Можно было бы поставить в поля db_index=True, но этот вариант лучше
         ]
 
