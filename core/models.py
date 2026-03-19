@@ -67,6 +67,7 @@ class Product(models.Model):
     title = models.CharField(max_length=100, verbose_name="Название товара")
     description = models.TextField(verbose_name="Описание товара")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена товара")
+    create_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(verbose_name="Доступен ли товар", default=True)
     stock = models.PositiveIntegerField(verbose_name="Осталось товара", default=1)
 
@@ -83,3 +84,36 @@ class Product(models.Model):
 
     def __str__(self):
         return f"Товар/цена/кол-во: {self.title} : {self.price} : {self.stock}. В наличии: {self.is_active}"
+
+
+class CartItem(models.Model):
+    customer = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, verbose_name="Покупатель")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Товар")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата изменения заказа")
+    quantity = models.PositiveIntegerField(verbose_name="Количество товара")
+
+
+    class Meta:
+        verbose_name = "Корзина"
+        verbose_name_plural = "Корзины"
+
+
+class Order(models.Model):
+    customer = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, verbose_name="Покупатель")
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, verbose_name="Магазин")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Общая цена")
+
+    CHOICES = [
+        "pending",
+        "paid",
+        "shipped",
+        "completed",
+        "canceled"
+    ]
+
+    status = models.CharField(max_length=20, choices=CHOICES, default='pending', verbose_name="Статус товара")
+
+
+
+class OrderItem(models.Model):
+    pass
