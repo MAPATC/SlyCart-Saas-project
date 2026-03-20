@@ -102,6 +102,7 @@ class Order(models.Model):
     customer = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, verbose_name="Покупатель")
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, verbose_name="Магазин")
     total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Общая цена")
+    
 
     CHOICES = [
         "pending",
@@ -117,3 +118,5 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     pass
+
+# TODO: Сделать таблицы для заказов 
