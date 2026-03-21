@@ -96,14 +96,16 @@ class CartItem(models.Model):
     class Meta:
         verbose_name = "Корзина"
         verbose_name_plural = "Корзины"
+    
+    def __str__(self):
+        return f"Покупатель {self.customer}, товар: {self.product}, кол-во: {self.quantity}"
 
 
 class Order(models.Model):
     customer = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, verbose_name="Покупатель")
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, verbose_name="Магазин")
-    order_id = models.PositiveIntegerField(verbose_name="Номер заказа", null=False, blank=False)
-    # Поле с номером заказа не может быть пустым
     total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Общая цена")
+
     CHOICES = [
         "pending",
         "paid",
@@ -119,12 +121,15 @@ class Order(models.Model):
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
 
+    def __str__(self):
+        return f"Покупатель: {self.customer}, магазин: {self.shop.shop_name}, к оплате: {self.total_price}, статус: {self.status}"
+    
 
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name="Заказ") 
     # Если удалиться заказ, то следовательно нужно и удалить товары в нем
-    cart_item = models.ForeignKey(Product, on_delete=models.SET_NULL, verbose_name="Товар")
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, verbose_name="Товар")
     # Если уберут товар, то просто оставим так, что товара нет, но тогда строчка с товаром останется пустой
     # Значит, ее нужно сохранить
     product_name = models.CharField(verbose_name="Товар(сохранненый)", max_length=255, null=False)
@@ -138,4 +143,7 @@ class OrderItem(models.Model):
         verbose_name = "Товар в заказе"
         verbose_name_plural = "Заказы с товарами"
 
-# TODO: Сделать таблицы для заказов 
+    def __str__(self):
+        return f"Номер заказа: {self.order.id}, кол-во: {self.quantity}, цена за штуку: {self.price_per_item}"
+
+# TODO: -
