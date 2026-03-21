@@ -90,7 +90,7 @@ class CartItem(models.Model):
     customer = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, verbose_name="Покупатель")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Товар")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата изменения заказа")
-    quantity = models.PositiveIntegerField(verbose_name="Количество товара")
+    quantity = models.PositiveSmallIntegerField(verbose_name="Количество товара")
 
 
     class Meta:
@@ -101,9 +101,9 @@ class CartItem(models.Model):
 class Order(models.Model):
     customer = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, verbose_name="Покупатель")
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, verbose_name="Магазин")
+    order_id = models.PositiveIntegerField(verbose_name="Номер заказа", null=False, blank=False)
+    # Поле с номером заказа не может быть пустым
     total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Общая цена")
-    
-
     CHOICES = [
         "pending",
         "paid",
@@ -114,9 +114,28 @@ class Order(models.Model):
 
     status = models.CharField(max_length=20, choices=CHOICES, default='pending', verbose_name="Статус товара")
 
+    
+    class Meta:
+        verbose_name = "Заказ"
+        verbose_name_plural = "Заказы"
+
 
 
 class OrderItem(models.Model):
-    pass
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name="Заказ") 
+    # Если удалиться заказ, то следовательно нужно и удалить товары в нем
+    cart_item = models.ForeignKey(Product, on_delete=models.SET_NULL, verbose_name="Товар")
+    # Если уберут товар, то просто оставим так, что товара нет, но тогда строчка с товаром останется пустой
+    # Значит, ее нужно сохранить
+    product_name = models.CharField(verbose_name="Товар(сохранненый)", max_length=255, null=False)
+    # Сохраняем сюда название товара
+    quantity = models.PositiveSmallIntegerField(verbose_name="Количество товаров в заказе")
+    # Сохраняем количество товара из корзины сюда
+    price_per_item = models.DecimalField(verbose_name="Цена за штуку", max_digits=10, decimal_places=2)
+    # Цена за штуку, чтобы легче было считать
+
+    class Meta:
+        verbose_name = "Товар в заказе"
+        verbose_name_plural = "Заказы с товарами"
 
 # TODO: Сделать таблицы для заказов 
