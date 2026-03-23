@@ -67,7 +67,7 @@ class Product(models.Model):
     title = models.CharField(max_length=100, verbose_name="Название товара")
     description = models.TextField(verbose_name="Описание товара")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена товара")
-    create_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     is_active = models.BooleanField(verbose_name="Доступен ли товар", default=True)
     stock = models.PositiveIntegerField(verbose_name="Осталось товара", default=1)
 
@@ -104,14 +104,14 @@ class CartItem(models.Model):
 class Order(models.Model):
     customer = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, verbose_name="Покупатель")
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, verbose_name="Магазин")
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Общая цена")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Общая цена", default=0)
 
     CHOICES = [
-        "pending",
-        "paid",
-        "shipped",
-        "completed",
-        "canceled"
+        ("pending", "Ожидает оплаты"),
+        ("paid", "Оплачен"),
+        ("shipped", "Отправлен"),
+        ("completed", "Завершен"),
+        ("canceled", "Отменен"),
     ]
 
     status = models.CharField(max_length=20, choices=CHOICES, default='pending', verbose_name="Статус товара")
@@ -127,9 +127,13 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name="Заказ") 
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name="Заказ", related_name="items") 
     # Если удалиться заказ, то следовательно нужно и удалить товары в нем
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, verbose_name="Товар")
+    product = models.ForeignKey(Product, 
+                                on_delete=models.SET_NULL, 
+                                verbose_name="Товар",
+                                null=True,
+                                blank=True)
     # Если уберут товар, то просто оставим так, что товара нет, но тогда строчка с товаром останется пустой
     # Значит, ее нужно сохранить
     product_name = models.CharField(verbose_name="Товар(сохранненый)", max_length=255, null=False)
@@ -144,6 +148,5 @@ class OrderItem(models.Model):
         verbose_name_plural = "Заказы с товарами"
 
     def __str__(self):
-        return f"Номер заказа: {self.order.id}, кол-во: {self.quantity}, цена за штуку: {self.price_per_item}"
+        return f"Номер заказа: {self.order_id}, кол-во: {self.quantity}, цена за штуку: {self.price_per_item}"
 
-# TODO: -
