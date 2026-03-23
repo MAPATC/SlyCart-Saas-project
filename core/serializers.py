@@ -1,5 +1,5 @@
 from rest_framework.serializers import ModelSerializer
-from .models import TelegramUser, Tariff, Shop, Product
+from .models import TelegramUser, Tariff, Shop, Product, CartItem, Order, OrderItem
 #  Лучше сначала импортировать "инструменты", а потом свои файлы
 
 
@@ -51,4 +51,41 @@ class ProductSerializer(ModelSerializer):
             "price",
             "is_active",
             "stock"
+        ]
+
+
+class CartItemSerializer(ModelSerializer):
+    class Meta: 
+        model = CartItem
+        fields = [
+            "id",
+            "customer",
+            "product",
+            "updated_at",
+            "quantity"
+        ]
+
+
+class OrderSerializer(ModelSerializer):
+    class Meta:
+        model = Order
+        fields = [
+            "id",
+            "customer",
+            "shop",
+            "total_price",
+            "status"
+        ]
+
+
+class OrderItemSerializer(ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = [
+            "id",
+            "order",
+            "product",
+            "product_name",
+            "quantity",
+            "price_per_item"
         ]
