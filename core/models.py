@@ -149,4 +149,3 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"Номер заказа: {self.order_id}, кол-во: {self.quantity}, цена за штуку: {self.price_per_item}"
-
