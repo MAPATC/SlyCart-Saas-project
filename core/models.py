@@ -3,7 +3,9 @@ from django.db import models
 
 # Create your models here.
 class TelegramUser(models.Model):
-    user_id = models.BigIntegerField(unique=True, verbose_name="ID телеграмм пользователя")
+
+    user_id = models.BigIntegerField(unique=True, 
+                                     verbose_name="ID телеграмм пользователя")
 
     ROLE_CHOICES = [
         ('customer', 'Покупатель'),
@@ -29,11 +31,19 @@ class TelegramUser(models.Model):
     
 
 class Tariff(models.Model):
-    plan = models.CharField(max_length=50, verbose_name="Тариф")
+
+    plan = models.CharField(max_length=50, 
+                            verbose_name="Тариф")
     limits = models.PositiveIntegerField(verbose_name="Лимиты")
+
     # max_digit - максимальное количество цифр в числе, decimal_places - знаки после запятой
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена тарифа")
-    description = models.TextField(verbose_name="Описание тарифа", blank=True, null=True)
+    price = models.DecimalField(max_digits=10,
+                                decimal_places=2, 
+                                verbose_name="Цена тарифа")
+    
+    description = models.TextField(verbose_name="Описание тарифа", 
+                                   blank=True, 
+                                   null=True)
     # blank позволяет быть полю пустым, а null будет сохранять пустые значение как NULL
 
     class Meta:
@@ -45,13 +55,22 @@ class Tariff(models.Model):
     
     
 class Shop(models.Model):
-    owner = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, verbose_name="Владелец") # Если удалим владельца, удалиться вся информация о магазине(CASCADE)
+
+    owner = models.ForeignKey(TelegramUser, 
+                              on_delete=models.CASCADE, 
+                              verbose_name="Владелец") # Если удалим владельца, удалиться вся информация о магазине(CASCADE)
     # Все о пользователе(тариф, дата регистрации, телеграм айди и т.д)
     # on_delete работает на тех, на кого мы ссылаемся
-    tariff = models.ForeignKey(Tariff, on_delete=models.SET_NULL, null=True, verbose_name="Тариф") # Если удалим тариф, то просто поставим NULL в колонке тарифа
+    tariff = models.ForeignKey(Tariff, 
+                               on_delete=models.SET_NULL, 
+                               null=True, 
+                               verbose_name="Тариф") # Если удалим тариф, то просто поставим NULL в колонке тарифа
     # Все о тарифах
-    shop_name = models.CharField(max_length=100, verbose_name="Название магазина")
-    shop_link = models.SlugField(unique=True, verbose_name="Ссылка (slug)")
+    shop_name = models.CharField(max_length=100,
+                                 verbose_name="Название магазина")
+    
+    shop_link = models.SlugField(unique=True, 
+                                 verbose_name="Ссылка (slug)")
 
 
     class Meta:
@@ -62,14 +81,27 @@ class Shop(models.Model):
         return f"Владелец/тариф: {self.owner.user_id} : {self.tariff} (Магазин: {self.shop_name}, link = {self.shop_link})"
     
 class Product(models.Model):
-    shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
+    
+    shop = models.ForeignKey(Shop, 
+                             on_delete=models.CASCADE)
     # Если удалят магазин, вся информация о продуктах тоже удалиться
-    title = models.CharField(max_length=100, verbose_name="Название товара")
+    title = models.CharField(max_length=100, 
+                             verbose_name="Название товара")
+    
     description = models.TextField(verbose_name="Описание товара")
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена товара")
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    is_active = models.BooleanField(verbose_name="Доступен ли товар", default=True)
-    stock = models.PositiveIntegerField(verbose_name="Осталось товара", default=1)
+
+    price = models.DecimalField(max_digits=10, 
+                                decimal_places=2, 
+                                verbose_name="Цена товара")
+    
+    created_at = models.DateTimeField(auto_now_add=True, 
+                                      null=True)
+    
+    is_active = models.BooleanField(verbose_name="Доступен ли товар", 
+                                    default=True)
+    
+    stock = models.PositiveIntegerField(verbose_name="Осталось товара", 
+                                        default=1)
 
     class Meta:
         verbose_name = "Товар"
@@ -87,9 +119,18 @@ class Product(models.Model):
 
 
 class CartItem(models.Model):
-    customer = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, verbose_name="Покупатель")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Товар")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата изменения заказа")
+
+    customer = models.ForeignKey(TelegramUser, 
+                                 on_delete=models.CASCADE, 
+                                 verbose_name="Покупатель")
+    
+    product = models.ForeignKey(Product, 
+                                on_delete=models.CASCADE, 
+                                verbose_name="Товар")
+    
+    updated_at = models.DateTimeField(auto_now=True, 
+                                      verbose_name="Дата изменения заказа")
+    
     quantity = models.PositiveSmallIntegerField(verbose_name="Количество товара")
 
 
@@ -102,9 +143,18 @@ class CartItem(models.Model):
 
 
 class Order(models.Model):
-    customer = models.ForeignKey(TelegramUser, on_delete=models.CASCADE, verbose_name="Покупатель")
-    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, verbose_name="Магазин")
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Общая цена", default=0)
+
+    customer = models.ForeignKey(TelegramUser, 
+                                 on_delete=models.CASCADE, 
+                                 verbose_name="Покупатель")
+    shop = models.ForeignKey(Shop, 
+                             on_delete=models.CASCADE, 
+                             verbose_name="Магазин")
+    
+    total_price = models.DecimalField(max_digits=10, 
+                                      decimal_places=2, 
+                                      verbose_name="Общая цена", 
+                                      default=0)
 
     CHOICES = [
         ("pending", "Ожидает оплаты"),
@@ -114,7 +164,10 @@ class Order(models.Model):
         ("canceled", "Отменен"),
     ]
 
-    status = models.CharField(max_length=20, choices=CHOICES, default='pending', verbose_name="Статус товара")
+    status = models.CharField(max_length=20, 
+                              choices=CHOICES, 
+                              default='pending', 
+                              verbose_name="Статус товара")
 
     
     class Meta:
@@ -127,7 +180,11 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name="Заказ", related_name="items") 
+
+    order = models.ForeignKey(Order, 
+                              on_delete=models.CASCADE, 
+                              verbose_name="Заказ", 
+                              related_name="items") 
     # Если удалиться заказ, то следовательно нужно и удалить товары в нем
     product = models.ForeignKey(Product, 
                                 on_delete=models.SET_NULL, 
@@ -136,11 +193,15 @@ class OrderItem(models.Model):
                                 blank=True)
     # Если уберут товар, то просто оставим так, что товара нет, но тогда строчка с товаром останется пустой
     # Значит, ее нужно сохранить
-    product_name = models.CharField(verbose_name="Товар(сохранненый)", max_length=255, null=False)
+    product_name = models.CharField(verbose_name="Товар(сохранненый)", 
+                                    max_length=255, 
+                                    null=False)
     # Сохраняем сюда название товара
     quantity = models.PositiveSmallIntegerField(verbose_name="Количество товаров в заказе")
     # Сохраняем количество товара из корзины сюда
-    price_per_item = models.DecimalField(verbose_name="Цена за штуку", max_digits=10, decimal_places=2)
+    price_per_item = models.DecimalField(verbose_name="Цена за штуку", 
+                                         max_digits=10, 
+                                         decimal_places=2)
     # Цена за штуку, чтобы легче было считать
 
     class Meta:
@@ -152,6 +213,7 @@ class OrderItem(models.Model):
 
 
 class ProductImage(models.Model):
+    
     product = models.ForeignKey(Product, 
                                 on_delete=models.CASCADE, 
                                 related_name="images",
