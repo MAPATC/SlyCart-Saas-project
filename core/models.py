@@ -149,3 +149,24 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"Номер заказа: {self.order_id}, кол-во: {self.quantity}, цена за штуку: {self.price_per_item}"
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, 
+                                on_delete=models.CASCADE, 
+                                related_name="images",
+                                verbose_name="Товар")
+    
+    image = models.ImageField(verbose_name="Изображение", 
+                                upload_to="products/gallery/%Y/%m/%d/",
+                                )
+    
+    is_main = models.BooleanField(verbose_name="Главное изображение",
+                                  default=False)
+    
+    class Meta:
+        verbose_name = "Изображение товара"
+        verbose_name_plural = "Изображения товаров"
+
+    def __str__(self):
+        return f"Фото для {self.product.title} {'(Главное)' if self.is_main else ''}"
