@@ -229,18 +229,25 @@ class ProductImage(models.Model):
     def save(self, *args, **kwargs):
         # 1) Применяем фильтр для конкретного товара
         other_images = ProductImage.objects.filter(product=self.product)
+        if self.id: # Если текущая запись есть, то исключаем ее(для корректного сохранения главного фото)
+            other_images = other_images.exclude(id=self.id)
         # Теперь у нас есть конкретный товар магазина
 
         # 2) Ставим для первой True 
         if not other_images.exists():
             self.is_main = True
 
-        # 3) Если мы хотим изменить главную
+        # 3) Если галочек вообще нигде нет
+        elif not self.is_main and not other_images.filter(is_main=True).exists():
+            self.is_main = True
+
+        # 4) Если мы хотим изменить главную
         if self.is_main:
             if self.id: # Проверяем есть ли оно в бд
                 other_images.exclude(id=self.id).update(is_main = False)
             else: # Если его нет
                 other_images.update(is_main=False) # то ставим всем False
+
 
         return super().save(*args, **kwargs)
     
