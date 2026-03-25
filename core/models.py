@@ -226,6 +226,24 @@ class ProductImage(models.Model):
     is_main = models.BooleanField(verbose_name="Главное изображение",
                                   default=False)
     
+    def save(self, *args, **kwargs):
+        # 1) Применяем фильтр для конкретного товара
+        other_images = ProductImage.objects.filter(product=self.product)
+        # Теперь у нас есть конкретный товар магазина
+
+        # 2) Ставим для первой True 
+        if not other_images.exists():
+            self.is_main = True
+
+        # 3) Если мы хотим изменить главную
+        if self.is_main:
+            if self.id: # Проверяем есть ли оно в бд
+                other_images.exclude(id=self.id).update(is_main = False)
+            else: # Если его нет
+                other_images.update(is_main=False) # то ставим всем False
+
+        return super().save(*args, **kwargs)
+    
     class Meta:
         verbose_name = "Изображение товара"
         verbose_name_plural = "Изображения товаров"
