@@ -229,9 +229,10 @@ class ProductImage(models.Model):
     def save(self, *args, **kwargs):
         # 1) Применяем фильтр для конкретного товара
         other_images = ProductImage.objects.filter(product=self.product)
+
         if self.id: # Если текущая запись есть, то исключаем ее(для корректного сохранения главного фото)
             other_images = other_images.exclude(id=self.id)
-        # Теперь у нас есть конкретный товар магазина
+        # Теперь у нас есть конкретный товар магазина (self.id - определенная запись в базе данных)
 
         # 2) Ставим для первой True 
         if not other_images.exists():
@@ -250,6 +251,29 @@ class ProductImage(models.Model):
 
 
         return super().save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        # 1) Удаляем фотографию из папки
+
+        if self.image: # Проверяем на случай того, если фотографии нет в папках
+            self.image.delete(save=False)
+
+        # 2) Записываем ту, которую удаляем
+        was_main = self.is_main
+        product = self.product # Записываем товар
+
+        # Делаем удаление
+        super().delete(*args, **kwargs)
+
+        # 3) Проверяем, было ли это фото главное
+        if was_main:
+            # 4) Если было главное, то назначаем первое фото главным
+            next_image = ProductImage.objects.filter(product=product).first()
+            if next_image: # есть ли еще в базе данных фотографии
+                next_image.is_main = True
+                next_image.save()
+    
+    # TODO: Сделать метод delete. Сделать так, чтобы удаленная фотка из базы данных удалялась и в папке
     
     class Meta:
         verbose_name = "Изображение товара"
