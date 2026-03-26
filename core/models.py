@@ -272,8 +272,7 @@ class ProductImage(models.Model):
             if next_image: # есть ли еще в базе данных фотографии
                 next_image.is_main = True
                 next_image.save()
-    
-    # TODO: Сделать метод delete. Сделать так, чтобы удаленная фотка из базы данных удалялась и в папке
+
     
     class Meta:
         verbose_name = "Изображение товара"
