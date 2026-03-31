@@ -19,11 +19,16 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import HttpResponse
 from .api import api
+
+def home(request):
+    return HttpResponse("API магазина запущено и работает. 🚀")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', api.urls)
+    path('api/', api.urls),
+    path('', home)
 ]
 
 if settings.DEBUG:
