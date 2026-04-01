@@ -1,5 +1,6 @@
 from django.db import models
-
+from phonenumber_field.modelfields import PhoneNumberField
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 class TelegramUser(models.Model):
@@ -28,7 +29,7 @@ class TelegramUser(models.Model):
     
     def __str__(self):
         return f"Пользователь: {self.user_id} ({self.role})"
-    
+
 
 class Tariff(models.Model):
 
@@ -52,37 +53,125 @@ class Tariff(models.Model):
 
     def __str__(self):
         return f'Тариф: {self.plan} -> Цена: {self.price}₽, Лимит: {self.limits} '
+
+
+class CustomerProfile(models.Model):
+
+    customer = models.OneToOneField(to=TelegramUser, 
+                                    on_delete=models.CASCADE, 
+                                    related_name="customers", 
+                                    verbose_name="Покупатель")
     
+    phone = PhoneNumberField(verbose_name="Номер телефона", 
+                            null=False, 
+                            blank=False,
+                            region="RU")
     
+    orders = models.PositiveSmallIntegerField(verbose_name="Количество заказов",
+                                              default=0)
+    
+    def clean(self):
+        if self.customer.role != "customer":
+            raise ValidationError(
+                f"Пользователь {self.customer.user_id} не является покупателем"
+                )
+        
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+                
+    
+    class Meta:
+        verbose_name = "Покупатель"
+        verbose_name_plural = "Покупатели"
+
+    def __str__(self):
+        return f'Покупатель: {self.customer}, телефон: {self.phone}'
+    
+
+class OwnerProfile(models.Model):
+
+    owner = models.OneToOneField(to=TelegramUser,
+                                 on_delete=models.CASCADE,
+                                 related_name="owners",
+                                 verbose_name="Владелец")
+    
+    # forein key в тарифах - база, потому что один тариф для всех пользователей, а не для одного.
+    tariff = models.ForeignKey(to=Tariff,
+                               on_delete=models.SET_NULL,
+                               null=True,
+                               verbose_name="Тариф")
+    
+    brand_name = models.CharField(max_length=120,
+                                  null=False,
+                                  blank=False,
+                                  verbose_name="Название бренда")
+    
+    phone = PhoneNumberField(verbose_name="Номер телефона", 
+                            null=True, 
+                            blank=True,
+                            region="RU")
+    
+    owner_inn = models.BigIntegerField(verbose_name="Инн владельца",
+                                 null=True,
+                                 blank=True)
+    
+    def clean(self):
+        if self.owner.role == "customer":
+            raise ValidationError(
+                f"Невозможно создать профиль владельца для пользователя {self.owner.user_id}, "
+                f'так как его роль - {self.owner.role}'
+            )
+        
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        verbose_name = "Владелец"
+        verbose_name_plural = "Владельцы"
+
+    def __str__(self):
+        return f'{self.owner}, {self.tariff}, бренд: {self.brand_name}'
+    
+
 class Shop(models.Model):
 
-    owner = models.ForeignKey(TelegramUser, 
+    owner = models.ForeignKey(to=OwnerProfile, 
                               on_delete=models.CASCADE, 
                               verbose_name="Владелец") # Если удалим владельца, удалиться вся информация о магазине(CASCADE)
     # Все о пользователе(тариф, дата регистрации, телеграм айди и т.д)
     # on_delete работает на тех, на кого мы ссылаемся
-    tariff = models.ForeignKey(Tariff, 
-                               on_delete=models.SET_NULL, 
-                               null=True, 
-                               verbose_name="Тариф") # Если удалим тариф, то просто поставим NULL в колонке тарифа
-    # Все о тарифах
+  
     shop_name = models.CharField(max_length=100,
                                  verbose_name="Название магазина")
     
     shop_link = models.SlugField(unique=True, 
                                  verbose_name="Ссылка (slug)")
+    
+    def clean(self): # Метод clean нужен для валидации данных
+        if self.owner.owner.role != 'owner':
+            raise ValidationError(
+                f"Пользователь {self.owner.owner.role} не является владельцем и не может создать магазин"
+            )
+        
+    def save(self, *args, **kwargs):
+        self.full_clean() # Принудительно вызвать метод clean, не только в админке, а везде
+        super().save(*args, **kwargs)
 
 
     class Meta:
         verbose_name = "Магазин"
         verbose_name_plural = "Магазины"
+
         
     def __str__(self):
-        return f"Владелец/тариф: {self.owner.user_id} : {self.tariff} (Магазин: {self.shop_name}, link = {self.shop_link})"
+        return f"Владелец/тариф: {self.owner.owner.user_id} : {self.owner.tariff} (Магазин: {self.shop_name}, link = {self.shop_link})"
     
+
 class Product(models.Model):
     
-    shop = models.ForeignKey(Shop, 
+    shop = models.ForeignKey(to=Shop, 
                              on_delete=models.CASCADE)
     # Если удалят магазин, вся информация о продуктах тоже удалиться
     title = models.CharField(max_length=100, 
@@ -120,11 +209,11 @@ class Product(models.Model):
 
 class CartItem(models.Model):
 
-    customer = models.ForeignKey(TelegramUser, 
+    customer = models.OneToOneField(to=CustomerProfile, 
                                  on_delete=models.CASCADE, 
                                  verbose_name="Покупатель")
     
-    product = models.ForeignKey(Product, 
+    product = models.ForeignKey(to=Product, 
                                 on_delete=models.CASCADE, 
                                 verbose_name="Товар")
     
@@ -144,10 +233,10 @@ class CartItem(models.Model):
 
 class Order(models.Model):
 
-    customer = models.ForeignKey(TelegramUser, 
+    customer = models.ForeignKey(to=CustomerProfile, 
                                  on_delete=models.CASCADE, 
                                  verbose_name="Покупатель")
-    shop = models.ForeignKey(Shop, 
+    shop = models.ForeignKey(to=Shop, 
                              on_delete=models.CASCADE, 
                              verbose_name="Магазин")
     
@@ -178,15 +267,14 @@ class Order(models.Model):
         return f"Покупатель: {self.customer}, магазин: {self.shop.shop_name}, к оплате: {self.total_price}, статус: {self.status}"
     
 
-
 class OrderItem(models.Model):
 
-    order = models.ForeignKey(Order, 
+    order = models.ForeignKey(to=Order, 
                               on_delete=models.CASCADE, 
                               verbose_name="Заказ", 
                               related_name="items") 
     # Если удалиться заказ, то следовательно нужно и удалить товары в нем
-    product = models.ForeignKey(Product, 
+    product = models.ForeignKey(to=Product, 
                                 on_delete=models.SET_NULL, 
                                 verbose_name="Товар",
                                 null=True,
@@ -214,7 +302,7 @@ class OrderItem(models.Model):
 
 class ProductImage(models.Model):
     
-    product = models.ForeignKey(Product, 
+    product = models.ForeignKey(to=Product, 
                                 on_delete=models.CASCADE, 
                                 related_name="images",
                                 verbose_name="Товар")
