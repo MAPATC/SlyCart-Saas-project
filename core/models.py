@@ -172,8 +172,11 @@ class Shop(models.Model):
 class Product(models.Model):
     
     shop = models.ForeignKey(to=Shop, 
-                             on_delete=models.CASCADE)
+                             on_delete=models.CASCADE,
+                             verbose_name="Магазин",
+                             related_name="products")
     # Если удалят магазин, вся информация о продуктах тоже удалиться
+    
     title = models.CharField(max_length=100, 
                              verbose_name="Название товара")
     
@@ -209,7 +212,7 @@ class Product(models.Model):
 
 class CartItem(models.Model):
 
-    customer = models.OneToOneField(to=CustomerProfile, 
+    customer = models.ForeignKey(to=CustomerProfile, 
                                  on_delete=models.CASCADE, 
                                  verbose_name="Покупатель")
     
