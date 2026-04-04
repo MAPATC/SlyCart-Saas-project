@@ -2,6 +2,8 @@ from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 from django.core.exceptions import ValidationError
 
+import uuid # Для shop_id, order_id
+
 # Create your models here.
 class TelegramUser(models.Model):
 
@@ -35,7 +37,16 @@ class Tariff(models.Model):
 
     plan = models.CharField(max_length=50, 
                             verbose_name="Тариф")
-    limits = models.PositiveIntegerField(verbose_name="Лимиты")
+    
+    max_products = models.PositiveSmallIntegerField(verbose_name="Лимит товаров",
+                                                    null=False,
+                                                    blank=False,
+                                                    default=10)
+
+    max_shops = models.PositiveSmallIntegerField(verbose_name="Лимит магазинов",
+                                                 null=False,
+                                                 blank=False,
+                                                 default=1)
 
     # max_digit - максимальное количество цифр в числе, decimal_places - знаки после запятой
     price = models.DecimalField(max_digits=10,
@@ -52,14 +63,14 @@ class Tariff(models.Model):
         verbose_name_plural = "Тарифы" # Чтобы в админке не было "Тарифs"
 
     def __str__(self):
-        return f'Тариф: {self.plan} -> Цена: {self.price}₽, Лимит: {self.limits} '
+        return f'Тариф: {self.plan} -> Цена: {self.price}₽, Лимиты(товары/магазины): {self.max_products}/{self.max_shops}'
 
 
 class CustomerProfile(models.Model):
 
     customer = models.OneToOneField(to=TelegramUser, 
                                     on_delete=models.CASCADE, 
-                                    related_name="customers", 
+                                    related_name="customer_profile", # Для OneToOne в единственном числе
                                     verbose_name="Покупатель")
     
     phone = PhoneNumberField(verbose_name="Номер телефона", 
@@ -67,10 +78,7 @@ class CustomerProfile(models.Model):
                             blank=False,
                             region="RU")
     
-    orders = models.PositiveSmallIntegerField(verbose_name="Количество заказов",
-                                              default=0)
-    
-    def clean(self):
+    def clean(self): # "Костыль" для админки
         if self.customer.role != "customer":
             raise ValidationError(
                 f"Пользователь {self.customer.user_id} не является покупателем"
@@ -93,7 +101,7 @@ class OwnerProfile(models.Model):
 
     owner = models.OneToOneField(to=TelegramUser,
                                  on_delete=models.CASCADE,
-                                 related_name="owners",
+                                 related_name="owner_profile",
                                  verbose_name="Владелец")
     
     # forein key в тарифах - база, потому что один тариф для всех пользователей, а не для одного.
@@ -112,7 +120,8 @@ class OwnerProfile(models.Model):
                             blank=True,
                             region="RU")
     
-    owner_inn = models.BigIntegerField(verbose_name="Инн владельца",
+    owner_inn = models.CharField(verbose_name="Инн владельца",
+                                 max_length=12,
                                  null=True,
                                  blank=True)
     
@@ -137,6 +146,11 @@ class OwnerProfile(models.Model):
 
 class Shop(models.Model):
 
+    id = models.UUIDField(verbose_name="ID магазина",
+                               primary_key=True,
+                               default=uuid.uuid4,
+                               editable=False)
+
     owner = models.ForeignKey(to=OwnerProfile, 
                               on_delete=models.CASCADE, 
                               verbose_name="Владелец") # Если удалим владельца, удалиться вся информация о магазине(CASCADE)
@@ -150,7 +164,7 @@ class Shop(models.Model):
                                  verbose_name="Ссылка (slug)")
     
     def clean(self): # Метод clean нужен для валидации данных
-        if self.owner.owner.role != 'owner':
+        if self.owner.owner.role != 'owner': # "Костыль" для админки
             raise ValidationError(
                 f"Пользователь {self.owner.owner.role} не является владельцем и не может создать магазин"
             )
@@ -166,7 +180,7 @@ class Shop(models.Model):
 
         
     def __str__(self):
-        return f"Владелец/тариф: {self.owner.owner.user_id} : {self.owner.tariff} (Магазин: {self.shop_name}, link = {self.shop_link})"
+        return f"Магазин: {self.shop_name}, link = {self.shop_link}"
     
 
 class Product(models.Model):
@@ -186,8 +200,8 @@ class Product(models.Model):
                                 decimal_places=2, 
                                 verbose_name="Цена товара")
     
-    created_at = models.DateTimeField(auto_now_add=True, 
-                                      null=True)
+    created_at = models.DateTimeField(verbose_name="Дата создания",
+                                      auto_now_add=True)
     
     is_active = models.BooleanField(verbose_name="Доступен ли товар", 
                                     default=True)
@@ -199,7 +213,7 @@ class Product(models.Model):
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
         indexes = [
-            models.Index(fields=["is_active"], name="goods_in_stock_idx"),
+            models.Index(fields=["shop", "is_active"], name="goods_in_stock_idx"),
             models.Index(fields=["shop", "price"], name="sorted_prices_idx")
             # В name нельзя ставить пробелы, так как это технические имена
             # Индексы нужны для оптимизации запросов, без индексов базе данных приходиться перебирать все
@@ -223,12 +237,20 @@ class CartItem(models.Model):
     updated_at = models.DateTimeField(auto_now=True, 
                                       verbose_name="Дата изменения заказа")
     
-    quantity = models.PositiveSmallIntegerField(verbose_name="Количество товара")
+    quantity = models.PositiveSmallIntegerField(verbose_name="Количество товара",
+                                                default=1)
 
 
     class Meta:
         verbose_name = "Корзина"
         verbose_name_plural = "Корзины"
+        constraints = [
+            models.UniqueConstraint( # Чтобы не было дублей в товарах, меняется только количество, покупатель и товар не меняется!
+                fields=['customer','product'],
+                name="unique_product"
+            )
+        ] 
+        
     
     def __str__(self):
         return f"Покупатель {self.customer}, товар: {self.product}, кол-во: {self.quantity}"
@@ -236,17 +258,29 @@ class CartItem(models.Model):
 
 class Order(models.Model):
 
+    id = models.UUIDField(verbose_name="ID заказа",
+                               primary_key=True,
+                               default=uuid.uuid4,
+                               editable=False)
+
     customer = models.ForeignKey(to=CustomerProfile, 
-                                 on_delete=models.CASCADE, 
+                                 on_delete=models.PROTECT, 
                                  verbose_name="Покупатель")
+    
     shop = models.ForeignKey(to=Shop, 
-                             on_delete=models.CASCADE, 
+                             on_delete=models.PROTECT, 
                              verbose_name="Магазин")
     
     total_price = models.DecimalField(max_digits=10, 
                                       decimal_places=2, 
                                       verbose_name="Общая цена", 
                                       default=0)
+    
+    created_at = models.DateTimeField(verbose_name="Дата создания",
+                                      auto_now_add=True)
+    
+    updated_at = models.DateTimeField(verbose_name="Дата обновления",
+                                      auto_now=True)
 
     CHOICES = [
         ("pending", "Ожидает оплаты"),
@@ -268,7 +302,28 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Покупатель: {self.customer}, магазин: {self.shop.shop_name}, к оплате: {self.total_price}, статус: {self.status}"
+
+
+class OrderHistory(models.Model):
+
+    order = models.ForeignKey(to=Order,
+                              verbose_name="Заказ",
+                              related_name="history",
+                              on_delete=models.CASCADE) # Без самого заказа нет смысла хранить историю
     
+    old_status = models.CharField(max_length=40,
+                              verbose_name="Статус(старый)")
+    
+    new_status = models.CharField(max_length=40,
+                                  verbose_name="Статус(новый)")
+    
+    created_at = models.DateTimeField(verbose_name="Дата изменения",
+                                      auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "История заказа"
+        verbose_name_plural = "История заказов"
+
 
 class OrderItem(models.Model):
 
@@ -300,7 +355,7 @@ class OrderItem(models.Model):
         verbose_name_plural = "Заказы с товарами"
 
     def __str__(self):
-        return f"Номер заказа: {self.order_id}, кол-во: {self.quantity}, цена за штуку: {self.price_per_item}"
+        return f"Номер заказа: {self.order.id}, кол-во: {self.quantity}, цена за штуку: {self.price_per_item}"
 
 
 class ProductImage(models.Model):
