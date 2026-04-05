@@ -418,7 +418,8 @@ class ProductImage(models.Model):
             if next_image: # есть ли еще в базе данных фотографии
                 next_image.is_main = True
                 next_image.save()
-
+                
+    # Лучше всего методы save, delete не писать именно в базе, а в service layer
     
     class Meta:
         verbose_name = "Изображение товара"
