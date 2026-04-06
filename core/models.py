@@ -146,10 +146,10 @@ class OwnerProfile(models.Model):
 
 class Shop(models.Model):
 
-    id = models.UUIDField(verbose_name="ID магазина",
-                               primary_key=True,
-                               default=uuid.uuid4,
-                               editable=False)
+    id = models.UUIDField(primary_key=True,
+                          default=uuid.uuid4,
+                          editable=False)
+                               
 
     owner = models.ForeignKey(to=OwnerProfile, 
                               on_delete=models.CASCADE, 
@@ -258,10 +258,9 @@ class CartItem(models.Model):
 
 class Order(models.Model):
 
-    id = models.UUIDField(verbose_name="ID заказа",
-                               primary_key=True,
-                               default=uuid.uuid4,
-                               editable=False)
+    id = models.UUIDField(primary_key=True,
+                          default=uuid.uuid4,
+                          editable=False)
 
     customer = models.ForeignKey(to=CustomerProfile, 
                                  on_delete=models.PROTECT, 
@@ -371,53 +370,6 @@ class ProductImage(models.Model):
     
     is_main = models.BooleanField(verbose_name="Главное изображение",
                                   default=False)
-    
-    def save(self, *args, **kwargs):
-        # 1) Применяем фильтр для конкретного товара
-        other_images = ProductImage.objects.filter(product=self.product)
-
-        if self.id: # Если текущая запись есть, то исключаем ее(для корректного сохранения главного фото)
-            other_images = other_images.exclude(id=self.id)
-        # Теперь у нас есть конкретный товар магазина (self.id - определенная запись в базе данных)
-
-        # 2) Ставим для первой True 
-        if not other_images.exists():
-            self.is_main = True
-
-        # 3) Если галочек вообще нигде нет
-        elif not self.is_main and not other_images.filter(is_main=True).exists():
-            self.is_main = True
-
-        # 4) Если мы хотим изменить главную
-        if self.is_main:
-            if self.id: # Проверяем есть ли оно в бд
-                other_images.exclude(id=self.id).update(is_main = False)
-            else: # Если его нет
-                other_images.update(is_main=False) # то ставим всем False
-
-
-        return super().save(*args, **kwargs)
-    
-    def delete(self, *args, **kwargs):
-        # 1) Удаляем фотографию из папки
-
-        if self.image: # Проверяем на случай того, если фотографии нет в папках
-            self.image.delete(save=False)
-
-        # 2) Записываем ту, которую удаляем
-        was_main = self.is_main
-        product = self.product # Записываем товар
-
-        # Делаем удаление
-        super().delete(*args, **kwargs)
-
-        # 3) Проверяем, было ли это фото главное
-        if was_main:
-            # 4) Если было главное, то назначаем первое фото главным
-            next_image = ProductImage.objects.filter(product=product).first()
-            if next_image: # есть ли еще в базе данных фотографии
-                next_image.is_main = True
-                next_image.save()
                 
     # Лучше всего методы save, delete не писать именно в базе, а в service layer
     
@@ -427,3 +379,5 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"Фото для {self.product.title} {'(Главное)' if self.is_main else ''}"
+    
+    # TODO: Использовать f-expression для избежания race condition, переписать методы save, delete в service layer.
