@@ -3,9 +3,9 @@ from django.db.models import F
 from .models import OrderItem, Product, Order, ProductImage
 
 def create_order(customer, shop , cart_item):
-
+        
         try:
-            with transaction.atomic():
+            with transaction.atomic(): # Атомарные операции проходят либо полностью, либо отменяются полностью из за любой ошибки
                 # 1) Проверить корзину
                 if not cart_item.exists():
                      return
@@ -17,7 +17,7 @@ def create_order(customer, shop , cart_item):
 
                     Product.objects.filter(id=item.product.id).update(stock=F("stock") - item.quantity) # Изменить остаток
 
-                    OrderItem.objects.create( # Создать заказ
+                    OrderItem.objects.create( # Создать товары заказа
                         order=order,
                         product=item.product,
                         product_name=item.product.title,
@@ -55,13 +55,9 @@ def delete_image(image_id): # Айди фотки из api
             image_obj.image.delete(save=False)
             image_obj.delete()
             first_image = ProductImage.objects.filter(product=image_obj.product).first()
-            set_main_image(first_image.id)
+            if first_image:
+                set_main_image(first_image.id)
         else:
             image_obj.image.delete(save=False)
             image_obj.delete()
             
-
-
-
-        
-        
