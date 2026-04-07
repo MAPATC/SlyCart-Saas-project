@@ -39,19 +39,16 @@ class Tariff(models.Model):
                             verbose_name="Тариф")
     
     max_products = models.PositiveSmallIntegerField(verbose_name="Лимит товаров",
-                                                    null=False,
-                                                    blank=False,
                                                     default=10)
 
     max_shops = models.PositiveSmallIntegerField(verbose_name="Лимит магазинов",
-                                                 null=False,
-                                                 blank=False,
                                                  default=1)
 
     # max_digit - максимальное количество цифр в числе, decimal_places - знаки после запятой
     price = models.DecimalField(max_digits=10,
                                 decimal_places=2, 
-                                verbose_name="Цена тарифа")
+                                verbose_name="Цена тарифа",
+                                default=0)
     
     description = models.TextField(verbose_name="Описание тарифа", 
                                    blank=True, 
