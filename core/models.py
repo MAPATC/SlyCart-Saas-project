@@ -48,7 +48,7 @@ class Tariff(models.Model):
     price = models.DecimalField(max_digits=10,
                                 decimal_places=2, 
                                 verbose_name="Цена тарифа",
-                                default=0)
+                                default=0.00)
     
     description = models.TextField(verbose_name="Описание тарифа", 
                                    blank=True, 
