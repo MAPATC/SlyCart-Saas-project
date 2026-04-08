@@ -1,7 +1,10 @@
+from decimal import Decimal
+
 from django.db import transaction, IntegrityError
 from django.db import models
 from django.db.models import F
 from django.utils.translation import gettext_lazy as _
+from django.utils.text import slugify
 from .models import (
     TelegramUser,
     Tariff,
@@ -64,8 +67,24 @@ def create_order(customer: CustomerProfile, shop: Shop, cart_item: CartItem) -> 
 
     except IntegrityError:
         return f"Ошибка! Товара недостаточно"
+    
+def upload_product_images(product: Product, images: list) -> None:
 
-def set_main_image(image_id: int) -> None: # Айди фотки из api
+    with transaction.atomic():
+
+        is_first = not product.images.exists()
+
+        for img in images:
+
+            ProductImage.objects.create(
+                product=product,
+                image=img,
+                is_main=is_first
+            )
+
+            is_first = False
+        
+def change_main_image(image_id: int) -> None: # Айди фотки из api
 
     with transaction.atomic():
         image_obj = ProductImage.objects.get(id=image_id)
@@ -85,7 +104,7 @@ def delete_image(image_id: int) -> None: # Айди фотки из api
         if was_main:
             first_image = ProductImage.objects.filter(product=product).first()
             if first_image:
-                set_main_image(first_image.id)
+                change_main_image(first_image.id)
 
 def change_order_status(order: Order, new_status: str) -> Order:
 
@@ -129,7 +148,11 @@ def create_user(telegram_id: int,
         )
 
         if role == ProfileRole.OWNER.value:
-            create_owner_profile(user=tg_user, inn=inn, brand_name=brand_name, tariff=tariff, phone_number=phone_number)
+            create_owner_profile(user=tg_user, 
+                                 inn=inn, 
+                                 brand_name=brand_name, 
+                                 tariff=tariff, 
+                                 phone_number=phone_number)
         else:
             create_customer_profile(user=tg_user, phone_number=phone_number)
 
@@ -143,7 +166,11 @@ def create_customer_profile(user: TelegramUser, phone_number: str) -> CustomerPr
             phone=phone_number
         )
         
-def create_owner_profile(user: TelegramUser, inn: str, brand_name: str, tariff: Tariff = None, phone_number: str = None) -> OwnerProfile:
+def create_owner_profile(user: TelegramUser, inn: 
+                         str, brand_name: str, 
+                         tariff: Tariff = None, 
+                         phone_number: str = None) -> OwnerProfile:
+    
     with transaction.atomic():
 
         owner_tariff = tariff
@@ -158,3 +185,49 @@ def create_owner_profile(user: TelegramUser, inn: str, brand_name: str, tariff: 
             owner_inn=inn,
             phone=phone_number
         )
+    
+def create_shop(user: OwnerProfile, link: str = None) -> Shop:
+
+    with transaction.atomic():
+
+        if user.tariff.max_shops <= user.shops.count():
+            raise ValueError("Магазинов больше чем возможно")
+        
+        if not link:
+            base_name = slugify(user.brand_name, allow_unicode=False).replace("-", "_")
+            link = f"{base_name}_shop"
+
+        if Shop.objects.filter(shop_link=link).exists():
+            raise IntegrityError("Такой магазин уже существует!")
+
+        shop = Shop.objects.create(
+            owner=user,
+            shop_name=user.brand_name,
+            shop_link=link
+        )
+
+        return shop
+    
+def create_product(shop: Shop, 
+                   title: str, 
+                   description: str, 
+                   price: Decimal, 
+                   stock: int) -> Product:
+
+    with transaction.atomic():
+
+        if shop.owner.tariff.max_products <= shop.products.count():
+            raise ValueError("Превышен лимит товаров!")
+        
+        if price < 0:
+            raise ValueError("Цена не может быть отрицательной!")
+        
+        product = Product.objects.create(
+            shop=shop,
+            title=title,
+            description=description,
+            price=price,
+            stock=stock
+        )
+
+        return product
