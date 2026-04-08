@@ -149,7 +149,8 @@ class Shop(models.Model):
 
     owner = models.ForeignKey(to=OwnerProfile, 
                               on_delete=models.CASCADE, 
-                              verbose_name="Владелец") # Если удалим владельца, удалиться вся информация о магазине(CASCADE)
+                              verbose_name="Владелец",
+                              related_name="shops") # Если удалим владельца, удалиться вся информация о магазине(CASCADE)
     # Все о пользователе(тариф, дата регистрации, телеграм айди и т.д)
     # on_delete работает на тех, на кого мы ссылаемся
   
