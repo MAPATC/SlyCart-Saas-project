@@ -73,6 +73,7 @@ class CustomerProfile(models.Model):
     phone = PhoneNumberField(verbose_name="Номер телефона", 
                             null=False, 
                             blank=False,
+                            unique=True,
                             region="RU")
     
     def clean(self): # "Костыль" для админки
@@ -115,6 +116,7 @@ class OwnerProfile(models.Model):
     phone = PhoneNumberField(verbose_name="Номер телефона", 
                             null=True, 
                             blank=True,
+                            unique=True,
                             region="RU")
     
     owner_inn = models.CharField(verbose_name="Инн владельца",

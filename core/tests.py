@@ -1,6 +1,6 @@
 import pytest
-from .services import create_user
-from .models import TelegramUser, OwnerProfile, Tariff
+from .services import create_user, create_shop
+from .models import TelegramUser, OwnerProfile, Tariff, Shop
 # Create your tests here.
 
 
@@ -35,3 +35,20 @@ def test_create_user_duplicate_id():
         create_user(telegram_id=999, role="owner") 
 
     assert str(excinfo.value) == "Такой пользователь уже существует!"
+
+@pytest.mark.django_db
+def test_create_shop():
+
+    user = create_user(telegram_id=123456, role="owner", brand_name="krols")
+
+    own = OwnerProfile.objects.get(owner=user)
+
+
+    create_shop(user=own, link="first_shop")
+    assert Shop.objects.count() == 1
+
+    with pytest.raises(ValueError) as excinfo:
+        create_shop(user=own, link="second_shop")
+
+    assert str(excinfo.value) == "Магазинов больше чем возможно"
+    assert Shop.objects.count() == 1

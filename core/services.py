@@ -66,7 +66,7 @@ def create_order(customer: CustomerProfile, shop: Shop, cart_item: CartItem) -> 
             return order # "Отчитываемся" о том, что мы создали для frontend
 
     except IntegrityError:
-        return f"Ошибка! Товара недостаточно"
+        return "Ошибка! Товара недостаточно"
     
 def upload_product_images(product: Product, images: list) -> None:
 
@@ -142,6 +142,7 @@ def create_user(telegram_id: int,
         if TelegramUser.objects.filter(user_id=telegram_id).exists():
             raise ValueError("Такой пользователь уже существует!")
         
+        
         tg_user = TelegramUser.objects.create(
             user_id=telegram_id,
             role=role
@@ -161,6 +162,13 @@ def create_user(telegram_id: int,
 def create_customer_profile(user: TelegramUser, phone_number: str) -> CustomerProfile:
 
     with transaction.atomic():
+
+        if not phone_number: 
+            raise ValueError("Для покупателя номер телефона обязателен")
+        
+        if CustomerProfile.objects.filter(phone=phone_number).exists():
+            raise ValueError("Такой номер телефона уже существует!")
+
         return CustomerProfile.objects.create(
             customer=user,
             phone=phone_number
@@ -172,6 +180,9 @@ def create_owner_profile(user: TelegramUser, inn:
                          phone_number: str = None) -> OwnerProfile:
     
     with transaction.atomic():
+
+        if OwnerProfile.objects.filter(phone=phone_number).exists():
+            raise ValueError("Такой номер телефона уже существует!")
 
         owner_tariff = tariff
 
