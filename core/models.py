@@ -379,4 +379,3 @@ class ProductImage(models.Model):
     def __str__(self):
         return f"Фото для {self.product.title} {'(Главное)' if self.is_main else ''}"
     
-    # TODO: Использовать f-expression для избежания race condition, переписать методы save, delete в service layer.
