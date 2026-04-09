@@ -1,6 +1,7 @@
+import uuid
 from ninja import Schema, ModelSchema
 from datetime import date
-from .models import TelegramUser
+from .models import TelegramUser, Shop
 
 class TelegramUserIn(Schema): # Что мы будем вносить
     user_id: int
@@ -14,3 +15,14 @@ class TelegramUserOut(ModelSchema): # Что мы будет отдавать в
     class Meta:
         model = TelegramUser
         fields = ['user_id', 'role']
+
+
+class ShopIn(Schema):
+    owner: int
+    shop_link: str = None
+
+
+class ShopOut(ModelSchema):
+    class Meta:
+        model = Shop
+        fields = ['id', 'owner','shop_name', 'shop_link']
