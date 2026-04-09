@@ -5,6 +5,18 @@ from django.db import models
 from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
+from .exceptions import (
+    UserAlreadyExistsError, 
+    InvalidRoleError,
+    ShopLimitExceededError,
+    BrandAlreadyTakenError,
+    InvalidOrderStatusError,
+    EmptyPhoneNumberError,
+    PhoneNumberAlreadyTakenError,
+    ShopAlreadyExists,
+    ProductLimitExceededError,
+    NegativePriceError
+)
 from .models import (
     TelegramUser,
     Tariff,
@@ -111,7 +123,7 @@ def change_order_status(order: Order, new_status: str) -> Order:
     with transaction.atomic():
 
         if new_status not in OrderStatus.values:
-            raise ValueError("Недопустимый статус")
+            raise InvalidOrderStatusError("Недопустимый статус")
         
         if order.status == new_status:
             return order
@@ -137,10 +149,10 @@ def create_user(telegram_id: int,
       with transaction.atomic():
 
         if role not in ProfileRole.values:
-            raise ValueError("Такой роли не существует!")
+            raise InvalidRoleError("Такой роли не существует!")
         
         if TelegramUser.objects.filter(user_id=telegram_id).exists():
-            raise ValueError("Такой пользователь уже существует!")
+            raise UserAlreadyExistsError("Такой пользователь уже существует!")
         
         
         tg_user = TelegramUser.objects.create(
@@ -164,25 +176,29 @@ def create_customer_profile(user: TelegramUser, phone_number: str) -> CustomerPr
     with transaction.atomic():
 
         if not phone_number: 
-            raise ValueError("Для покупателя номер телефона обязателен")
+            raise EmptyPhoneNumberError("Для покупателя номер телефона обязателен")
         
         if CustomerProfile.objects.filter(phone=phone_number).exists():
-            raise ValueError("Такой номер телефона уже существует!")
+            raise PhoneNumberAlreadyTakenError("Такой номер телефона уже существует!")
 
         return CustomerProfile.objects.create(
             customer=user,
             phone=phone_number
         )
         
-def create_owner_profile(user: TelegramUser, inn: 
-                         str, brand_name: str, 
+def create_owner_profile(user: TelegramUser, 
+                         inn: str, 
+                         brand_name: str, 
                          tariff: Tariff = None, 
                          phone_number: str = None) -> OwnerProfile:
     
     with transaction.atomic():
 
         if OwnerProfile.objects.filter(phone=phone_number).exists():
-            raise ValueError("Такой номер телефона уже существует!")
+            raise PhoneNumberAlreadyTakenError("Такой номер телефона уже существует!")
+        
+        if OwnerProfile.objects.filter(brand_name=brand_name).exists():
+            raise BrandAlreadyTakenError("Этот бренд уже занят!")
 
         owner_tariff = tariff
 
@@ -202,14 +218,17 @@ def create_shop(user: OwnerProfile, link: str = None) -> Shop:
     with transaction.atomic():
 
         if user.tariff.max_shops <= user.shops.count():
-            raise ValueError("Магазинов больше чем возможно")
+            raise ShopLimitExceededError("Магазинов больше чем возможно")
+        
+        if link:
+            link = slugify(link, allow_unicode=False).replace("-", "_")
         
         if not link:
             base_name = slugify(user.brand_name, allow_unicode=False).replace("-", "_")
             link = f"{base_name}_shop"
 
         if Shop.objects.filter(shop_link=link).exists():
-            raise IntegrityError("Такой магазин уже существует!")
+            raise ShopAlreadyExists("Такой магазин уже существует!")
 
         shop = Shop.objects.create(
             owner=user,
@@ -228,10 +247,10 @@ def create_product(shop: Shop,
     with transaction.atomic():
 
         if shop.owner.tariff.max_products <= shop.products.count():
-            raise ValueError("Превышен лимит товаров!")
+            raise ProductLimitExceededError("Превышен лимит товаров!")
         
         if price < 0:
-            raise ValueError("Цена не может быть отрицательной!")
+            raise NegativePriceError("Цена не может быть отрицательной!")
         
         product = Product.objects.create(
             shop=shop,
