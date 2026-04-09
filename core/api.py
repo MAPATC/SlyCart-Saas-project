@@ -1,7 +1,11 @@
 from ninja import Router
-from .models import TelegramUser
-from .services import create_user
-from .schemas import TelegramUserOut, TelegramUserIn
+from django.shortcuts import get_object_or_404
+from .models import TelegramUser, OwnerProfile
+from .services import create_user, create_shop
+from .schemas import (TelegramUserOut, 
+                      TelegramUserIn,
+                      ShopIn,
+                      ShopOut)
 
 core_router = Router()
 
@@ -22,4 +26,14 @@ def create_user_endpoint(request, data: TelegramUserIn): # Что будет п�
     return user
     
 
-# TODO: сделать api для одной из моделей(начнем с product)
+@core_router.post('/shop', response=ShopOut)
+def create_shop_endpoint(request, data: ShopIn):
+
+    owner = get_object_or_404(OwnerProfile, owner__user_id=data.owner)
+
+    shop = create_shop(
+        user=owner,
+        link=data.shop_link
+    )
+
+    return shop
