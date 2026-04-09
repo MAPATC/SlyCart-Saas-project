@@ -1,4 +1,4 @@
-class BaseServiceException(Exception):
+class BaseServiceException(Exception): 
     """Базовое исключение для всех сервисов нашего проекта"""
     def __init__(self, message="Произошла ошибка в работе сервиса"):
         self.message = message
