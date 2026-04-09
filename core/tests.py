@@ -1,4 +1,6 @@
 import pytest
+
+from .exceptions import ShopLimitExceededError, UserAlreadyExistsError, InvalidRoleError
 from .services import create_user, create_shop
 from .models import TelegramUser, OwnerProfile, Tariff, Shop
 # Create your tests here.
@@ -21,7 +23,7 @@ def test_services():
 @pytest.mark.django_db 
 def test_create_user_with_incorrect_role():
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(InvalidRoleError) as excinfo:
         create_user(telegram_id=777, role='hacker')
 
     assert str(excinfo.value) == "Такой роли не существует!"
@@ -31,7 +33,7 @@ def test_create_user_duplicate_id():
 
     create_user(telegram_id=999, role="customer", phone_number="89991234567")
     # Здесь нам нужен менеджер контекста, чтобы обработать ошибку и тест не завершился с ошибкой даже не начавшись
-    with pytest.raises(ValueError) as excinfo: # excinfo это целый объект-контейнер от pytest
+    with pytest.raises(UserAlreadyExistsError) as excinfo: # excinfo это целый объект-контейнер от pytest
         create_user(telegram_id=999, role="owner") 
 
     assert str(excinfo.value) == "Такой пользователь уже существует!"
@@ -47,7 +49,7 @@ def test_create_shop():
     create_shop(user=own, link="first_shop")
     assert Shop.objects.count() == 1
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ShopLimitExceededError) as excinfo:
         create_shop(user=own, link="second_shop")
 
     assert str(excinfo.value) == "Магазинов больше чем возможно"
