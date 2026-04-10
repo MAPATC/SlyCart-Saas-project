@@ -37,3 +37,6 @@ def create_shop_endpoint(request, data: ShopIn):
     )
 
     return shop
+
+
+# TODO: эндпоинт для товаров
