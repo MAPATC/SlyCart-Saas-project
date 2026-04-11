@@ -33,14 +33,13 @@ class ShopOut(ModelSchema):
         model = Shop
         fields = ['id', 'shop_name', 'shop_link'] # Здесь ТОЛЬКО реальные колонки из таблицы Shop
 
-    # 3. Твой "добытчик" (теперь он сработает)
-    @staticmethod
+    @staticmethod # "Добытчик" сам все найдет и напишет
     def resolve_owner_id(obj):
         return obj.owner.owner.user_id
 
 
 class ProductIn(Schema):
-    shop: int
+    shop: uuid.UUID
     user_id: int
     title: str
     description: str
