@@ -213,7 +213,7 @@ def create_owner_profile(user: TelegramUser,
             phone=phone_number
         )
     
-def create_shop(user: OwnerProfile, link: str = None) -> Shop:
+def create_shop(user: OwnerProfile, name: str ,link: str = None) -> Shop:
 
     with transaction.atomic():
 
@@ -232,7 +232,7 @@ def create_shop(user: OwnerProfile, link: str = None) -> Shop:
 
         shop = Shop.objects.create(
             owner=user,
-            shop_name=user.brand_name,
+            shop_name=name,
             shop_link=link
         )
 
@@ -242,7 +242,8 @@ def create_product(shop: Shop,
                    title: str, 
                    description: str, 
                    price: Decimal, 
-                   stock: int) -> Product:
+                   stock: int,
+                   is_active: bool = True) -> Product:
 
     with transaction.atomic():
 
@@ -257,7 +258,8 @@ def create_product(shop: Shop,
             title=title,
             description=description,
             price=price,
-            stock=stock
+            stock=stock,
+            is_active=is_active
         )
 
         return product
