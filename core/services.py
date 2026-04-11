@@ -1,5 +1,6 @@
 from decimal import Decimal
-
+from typing import List
+from ninja.files import UploadedFile
 from django.db import transaction, IntegrityError
 from django.db import models
 from django.db.models import F
@@ -85,6 +86,12 @@ def upload_product_images(product: Product, images: list) -> None:
     with transaction.atomic():
 
         is_first = not product.images.exists()
+
+        if not isinstance(images, list):
+            images = [images]
+
+        if len(images) > 6:
+            raise ValueError("Слишком много фотографий!")
 
         for img in images:
 
@@ -221,7 +228,9 @@ def create_shop(user: OwnerProfile, name: str ,link: str = None) -> Shop:
             raise ShopLimitExceededError("Магазинов больше чем возможно")
         
         if link:
-            link = slugify(link, allow_unicode=False).replace("-", "_")
+            base_name = slugify(link, allow_unicode=False).replace("-", "_")
+            link = f"{base_name}_shop"
+            
         
         if not link:
             base_name = slugify(user.brand_name, allow_unicode=False).replace("-", "_")
@@ -241,7 +250,8 @@ def create_shop(user: OwnerProfile, name: str ,link: str = None) -> Shop:
 def create_product(shop: Shop, 
                    title: str, 
                    description: str, 
-                   price: Decimal, 
+                   price: Decimal,
+                   images: List[UploadedFile], 
                    stock: int,
                    is_active: bool = True) -> Product:
 
@@ -253,6 +263,9 @@ def create_product(shop: Shop,
         if price < 0:
             raise NegativePriceError("Цена не может быть отрицательной!")
         
+        if not images:
+            raise ValueError("Нет фотографий товара!")
+        
         product = Product.objects.create(
             shop=shop,
             title=title,
@@ -260,6 +273,11 @@ def create_product(shop: Shop,
             price=price,
             stock=stock,
             is_active=is_active
+        )
+
+        upload_product_images(
+            product=product,
+            images=images
         )
 
         return product
