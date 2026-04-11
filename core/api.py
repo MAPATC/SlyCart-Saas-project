@@ -1,4 +1,5 @@
-from ninja import Router
+from ninja import Router, File
+from ninja.files import UploadedFile
 from typing import List
 from django.shortcuts import get_object_or_404
 from .models import TelegramUser, OwnerProfile, Product, Shop
@@ -43,7 +44,7 @@ def create_shop_endpoint(request, data: ShopIn):
     return shop
 
 @core_router.post("/product", response=ProductOut)
-def create_product_endpoint(request, data: ProductIn):
+def create_product_endpoint(request, data: ProductIn, images: List[UploadedFile] = File()):
 
     shop_obj = get_object_or_404(Shop, id=data.shop, owner__owner__user_id=data.user_id)
 
@@ -51,6 +52,7 @@ def create_product_endpoint(request, data: ProductIn):
         shop=shop_obj,
         title=data.title,
         description=data.description,
+        images=images,
         price=data.price,
         stock=data.stock,
         is_active=data.is_active
