@@ -45,3 +45,7 @@ class ShopAlreadyExists(BaseServiceException):
 class NegativePriceError(BaseServiceException):
     """Отрицательная цена для товара"""
     pass
+
+class NoProductImages(BaseServiceException):
+    """Отсутствуют фотографии для товара"""
+    pass
