@@ -1,7 +1,8 @@
 from decimal import Decimal
+from typing import Optional
 from pydantic import PositiveInt
 import uuid
-from ninja import Schema, ModelSchema
+from ninja import Field, Schema, ModelSchema
 from datetime import date
 from .models import TelegramUser, Shop, Product
 
@@ -43,12 +44,26 @@ class ProductIn(Schema):
     user_id: int
     title: str
     description: str
-    price: Decimal
+    price: Decimal = Field(..., max_digits=10, decimal_places=2) # ...(элипс) означает что поле обязательное. 
+    # Информацию обязательно должен прислать бекэнд или пользователь 
     stock: PositiveInt
     is_active: bool = True
 
 
 class ProductOut(ModelSchema):
+
+    price: Decimal = Field(..., max_digits=12, decimal_places=2, json_schema_extra={"example": "0.00"})
+
+    shop_id: uuid.UUID = Field(..., alias="shop.id")
+
     class Meta:
         model = Product
-        fields = ["title", "description", "price", "stock", "is_active"]
+        fields = ["id","title", "description", "price", "stock", "is_active"]
+
+class ProductPatch(Schema):
+    user_id: int
+    title: Optional[str]
+    description: Optional[str]
+    price: Optional[Decimal] 
+    stock: Optional[PositiveInt]
+    is_active: Optional[bool]
