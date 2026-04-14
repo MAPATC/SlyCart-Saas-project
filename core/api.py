@@ -1,7 +1,10 @@
+import uuid
 from ninja import Router, File
 from ninja.files import UploadedFile
 from typing import List
 from django.shortcuts import get_object_or_404
+
+from .exceptions import NegativePriceError
 from .models import TelegramUser, OwnerProfile, Product, Shop
 from .services import create_user, create_shop, create_product
 from .schemas import (TelegramUserOut, 
@@ -9,7 +12,8 @@ from .schemas import (TelegramUserOut,
                       ShopIn,
                       ShopOut,
                       ProductIn,
-                      ProductOut)
+                      ProductOut,
+                      ProductPatch)
 
 core_router = Router()
 
@@ -63,8 +67,34 @@ def create_product_endpoint(request, data: ProductIn, images: List[UploadedFile]
 @core_router.get("/my-shops", response=List[ShopOut])
 def list_my_shops(request, user_id: int):
 
-    shops = Shop.objects.filter(owner__owner__user_id=user_id)
+    return Shop.objects.filter(owner__owner__user_id=user_id).select_related('owner__owner')
 
-    return shops
+@core_router.get('/shops/{shop_id}/products', response=List[ProductOut])
+def product_list_endpoint(request, shop_id: uuid.UUID):
+    # ninja легче работать напрямую через QuerySet, чем через переменные. Переменные могут вызывать ошибки
+    return Product.objects.filter(shop=shop_id, is_active=True).select_related('shop') 
 
+
+@core_router.patch("/product/{product_id}", response=ProductOut)
+def edit_products_endpoint(request, product_id: int , data: ProductPatch):
+
+    product = get_object_or_404(
+            Product, 
+            id=product_id, 
+            shop__owner__owner__user_id=data.user_id
+        )
+
+    update_data = data.dict(exclude_unset=True)
+
+    update_data.pop("user_id")
+
+    for field, value in update_data.items():
+        if field == "price" and value < 0:
+            raise NegativePriceError("Цена не может быть отрицательной!")
+        setattr(product, field, value)
+    
+
+    product.save()
+
+    return product
 # TODO: эндпоинт для товаров
