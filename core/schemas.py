@@ -58,7 +58,7 @@ class ProductOut(ModelSchema):
 
     class Meta:
         model = Product
-        fields = ["id","title", "description", "price", "stock", "is_active"]
+        fields = ["id", "title", "description", "price", "stock", "is_active"]
 
 class ProductPatch(Schema):
     user_id: int
