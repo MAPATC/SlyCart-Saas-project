@@ -1,7 +1,5 @@
 # 🚀 Telegram SaaS CRM (Backend MVP)
 
-**Серия разработки №3** — Полнофункциональный API для управления маркетплейсом внутри Telegram-экосистемы.
-
 ## 🛠 Стек технологий
 * **Language:** Python 3.12+
 * **Framework:** [Django Ninja](https://rest-api.org) (Fast, Type-safe API)
