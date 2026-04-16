@@ -49,7 +49,7 @@ export default function Lamp({ isDark, onToggle }: LampProps) {
                     onDragEnd={(_, info) => {
                         if (info.offset.y > 100) onToggle()
                     }}
-                    className="w-8 h-8 bg-zinc-800 rounded-full border-2 border-slate-400 shadow-2xl flex items-center justify-center pointer-events-auto z-30 cursor-grab active:cursor-grabbing mt-[60px]"
+                    className="w-8 h-8 bg-zinc-800 rounded-full border-2 border-slate-400 shadow-2xl flex items-center justify-center pointer-events-auto z-30 cursor-grab active:cursor-grabbing mt-15"
                 >
                     <div className="w-1.5 h-1.5 bg-white/20 rounded-full" />
                 </motion.div>
