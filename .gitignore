@@ -6,3 +6,5 @@ Thumbs.db
 *.py[cod]
 *$py.class
 .vscode/
+.pytest_cache
+media
