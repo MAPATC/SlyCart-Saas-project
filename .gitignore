@@ -8,3 +8,4 @@ Thumbs.db
 .vscode/
 .pytest_cache
 media
+seed_products.py
