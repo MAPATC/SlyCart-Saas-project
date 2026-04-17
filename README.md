@@ -2,12 +2,11 @@
 
 ## 🛠 Tech Stack (Backend Power)
 
-<p align="left">
-  <img src="https://githubusercontent.com" width="40" height="40" alt="python" />
-  <img src="https://githubusercontent.com" width="40" height="40" alt="django" />
-  <img src="https://githubusercontent.com" width="40" height="40" alt="postgres" />
-  <img src="https://githubusercontent.com" width="40" height="40" alt="docker" />
-</p>
+- 🐍 **Python 3.12** — Ядро системы
+- 💚 **Django Ninja** — Скоростной API (FastAPI Style)
+- 🐘 **PostgreSQL** — Надежное хранилище данных
+- 🐳 **Docker** — Контейнеризация и деплой
+
 
 ## 🏗 Ключевые архитектурные решения
 * **Telegram-Native Auth:** Регистрация и идентификация пользователей по `tg_id`.
