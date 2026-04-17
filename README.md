@@ -2,7 +2,7 @@
 
 ## 🛠 Tech Stack (Backend Power)
 
-- 🐍 **Python 3.12** — Ядро системы
+- (https://img.shields.io/badge/github-repo-blue?logo=python) **Python 3.12** — Ядро системы
 - 💚 **Django Ninja** — Скоростной API (FastAPI Style)
 - 🐘 **PostgreSQL** — Надежное хранилище данных
 - 🐳 **Docker** — Контейнеризация и деплой
