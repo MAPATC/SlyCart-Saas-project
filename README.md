@@ -9,18 +9,17 @@
 ![PostgreSQL](https://img.shields.io/badge/postgresql-brightgreen?style=flat&logo=postgresql&logoColor=blue)
 
 ### 🌐 Frontend (Modern UI)
-![React](https://shields.io)
-![TypeScript](https://shields.io)
-![Vite](https://shields.io)
-![TailwindCSS](https://shields.io)
+![React](https://img.shields.io/badge/React-darkblue?style=flat&logo=react&logoColor=blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-darkblue?style=flat&logo=TypeScript&logoColor=blue)
+![Vite](https://img.shields.io/badge/Vite-darkblue?style=flat&logo=Vite&logoColor=blue)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-darkblue?style=flat&logo=TailwindCSS&logoColor=blue)
 
 ### 🤖 Telegram Integration
-![Aiogram](https://shields.io)
-![Telegraph](https://shields.io)
+![Aiogram](https://img.shields.io/badge/Aiogram-blue?style=flat&logo=Telegram&logoColor=lightblue)
 
 ### 📦 Infrastructure
-![Docker](https://shields.io)
-![Git](https://shields.io)
+![Docker](https://img.shields.io/badge/Docker-blue?style=flat&logo=Docker&logoColor=lightblue)
+![Git](https://img.shields.io/badge/Git-blue?style=flat&logo=Git&logoColor=lightblue)
 
 
 ## 🏗 Ключевые архитектурные решения
