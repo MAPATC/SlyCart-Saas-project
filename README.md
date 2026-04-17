@@ -4,9 +4,9 @@
 
 ### 🖥️ Backend & API
 ![Python](https://img.shields.io/badge/python-brightgreen?style=flat&logo=python)
-![Django](https://shields.io)
-![Django Ninja](https://shields.io)
-![PostgreSQL](https://shields.io)
+![Django](https://img.shields.io/badge/django-brightgreen?style=flat&logo=django)
+![Django Ninja](https://img.shields.io/badge/django_ninja-brightgreen?style=flat&logo=django)
+![PostgreSQL](https://img.shields.io/badge/postgresql-brightgreen?style=flat&logo=postgresql&logoColor=blue)
 
 ### 🌐 Frontend (Modern UI)
 ![React](https://shields.io)
