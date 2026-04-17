@@ -1,11 +1,26 @@
 # 🚀 Telegram SaaS CRM (Backend MVP)
 
-## 🛠 Tech Stack (Backend Power)
+## 🛠 Tech Stack
 
-- ![Python](https://img.shields.io/badge/python-brightgreen?style=flat&logo=python) — Ядро системы
-- 💚 **Django Ninja** — Скоростной API (FastAPI Style)
-- 🐘 **PostgreSQL** — Надежное хранилище данных
-- 🐳 **Docker** — Контейнеризация и деплой
+### 🖥️ Backend & API
+![Python]([https://shields.io](https://img.shields.io/badge/python-brightgreen?style=flat&logo=python)
+![Django](https://shields.io)
+![Django Ninja](https://shields.io)
+![PostgreSQL](https://shields.io)
+
+### 🌐 Frontend (Modern UI)
+![React](https://shields.io)
+![TypeScript](https://shields.io)
+![Vite](https://shields.io)
+![TailwindCSS](https://shields.io)
+
+### 🤖 Telegram Integration
+![Aiogram](https://shields.io)
+![Telegraph](https://shields.io)
+
+### 📦 Infrastructure
+![Docker](https://shields.io)
+![Git](https://shields.io)
 
 
 ## 🏗 Ключевые архитектурные решения
