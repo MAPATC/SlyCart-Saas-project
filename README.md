@@ -1,10 +1,12 @@
 # 🚀 Telegram SaaS CRM (Backend MVP)
 
-## 🛠 Стек технологий
-* **Language:** Python 3.12+
-* **Framework:** [Django Ninja](https://rest-api.org) (Fast, Type-safe API)
-* **Database:** PostgreSQL
-* **Architecture:** Multi-tenancy (один пользователь — много магазинов)
+## 🛠 Tech Stack (Backend Power)
+
+![Python](https://shields.io)
+![Django](https://shields.io)
+![Django Ninja](https://shields.io)
+![PostgreSQL](https://shields.io)
+![Docker](https://shields.io)
 
 ## 🏗 Ключевые архитектурные решения
 * **Telegram-Native Auth:** Регистрация и идентификация пользователей по `tg_id`.
