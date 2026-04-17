@@ -2,11 +2,12 @@
 
 ## 🛠 Tech Stack (Backend Power)
 
-![Python](https://img.shields.io/aur/last-modified/python)
-![Django](https://shields.io)
-![Django Ninja](https://shields.io)
-![PostgreSQL](https://shields.io)
-![Docker](https://shields.io)
+<p align="left">
+  <img src="https://githubusercontent.com" width="40" height="40" alt="python" />
+  <img src="https://githubusercontent.com" width="40" height="40" alt="django" />
+  <img src="https://githubusercontent.com" width="40" height="40" alt="postgres" />
+  <img src="https://githubusercontent.com" width="40" height="40" alt="docker" />
+</p>
 
 ## 🏗 Ключевые архитектурные решения
 * **Telegram-Native Auth:** Регистрация и идентификация пользователей по `tg_id`.
