@@ -2,7 +2,7 @@
 
 ## 🛠 Tech Stack (Backend Power)
 
-![Python](https://shields.io)
+![Python]([https://shields.io](https://img.shields.io/aur/last-modified/python))
 ![Django](https://shields.io)
 ![Django Ninja](https://shields.io)
 ![PostgreSQL](https://shields.io)
