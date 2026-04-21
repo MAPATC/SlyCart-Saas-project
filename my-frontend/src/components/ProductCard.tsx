@@ -33,7 +33,7 @@ export const ProductCard = ({ product }: Props) => {
                     {Number(product.price).toLocaleString()} ₽
                 </span>
                 <button className="text-[10px] font-black text-blue-600 tracking-tighter hover:text-blue-800">
-                    УПРАВЛЯТЬ
+                    ЧТО ТО ТАМ...
                 </button>
             </div>
         </div>
