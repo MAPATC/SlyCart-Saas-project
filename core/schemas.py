@@ -14,7 +14,7 @@ class TelegramUserIn(Schema): # Что мы будем вносить
     brand_name: str = None
 
 
-class TelegramUserOut(ModelSchema): # Что мы будет отдавать в front(modelschema лучше использовать для Out)
+class TelegramUserOut(ModelSchema): # Что мы будет отдавать в front(modelSchema лучше использовать для Out)
     class Meta:
         model = TelegramUser
         fields = ['user_id', 'role']
