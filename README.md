@@ -62,7 +62,19 @@
 *(Здесь будет ссылка на ютуб канал)*
 
 ## 🛠 Установка и запуск
-1. Клонировать репозиторий.
-2. Настроить окружение `.env`.
-3. Запустить миграции: `python manage.py migrate`.
-4. Запуск сервера: `python manage.py runserver`.
+
+### 🐍 Backend (Django + Ninja)
+1. **Клонировать репозиторий:** `git clone `
+2. **Создать и активировать виртуальное окружение:**
+   - `python -m venv venv`
+   - `source venv/bin/activate` (или `venv\Scripts\activate` для Windows)
+3. **Установить зависимости:** `pip install -r requirements.txt`
+4. **Настроить окружение:** Создать файл `.env` на основе `.env.example`
+5. **Применить миграции:** `python manage.py migrate`
+6. **Запустить сервер:** `python manage.py runserver`
+
+### ⚛️ Frontend (React + Vite)
+1. **Перейти в папку:** `cd my-frontend`
+2. **Установить зависимости:** `npm install`
+3. **Запустить в режиме разработки:** `npm run dev`
+
