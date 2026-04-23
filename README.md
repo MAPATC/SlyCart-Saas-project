@@ -64,7 +64,7 @@
 ## 🛠 Установка и запуск
 
 ### 🐍 Backend (Django + Ninja)
-1. **Клонировать репозиторий:** `git clone `
+1. **Клонировать репозиторий:** `git clone https://github.com/MAPATC/SlyCart-Saas-project.git`
 2. **Создать и активировать виртуальное окружение:**
    - `python -m venv venv`
    - `source venv/bin/activate` (или `venv\Scripts\activate` для Windows)
