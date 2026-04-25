@@ -47,62 +47,98 @@ class ProfileRole(models.TextChoices):
     OWNER = "owner", _("Владелец")
 
 
-def create_order(customer: CustomerProfile, shop: Shop, cart_item: CartItem) -> Order:
-        
-    try:
-        with transaction.atomic(): # Атомарные операции проходят либо полностью, либо отменяются полностью из за любой ошибки
-            # 1) Проверить корзину
-            if not cart_item.exists():
-                    return
-            # 2) Создать заказ
-            order = Order.objects.create(customer=customer, shop=shop)
-            total_price = 0
-
-            for item in cart_item:
-
-                Product.objects.filter(id=item.product.id).update(stock=F("stock") - item.quantity) # Изменить остаток
-
-                OrderItem.objects.create( # Создать товары заказа
-                    order=order,
-                    product=item.product,
-                    product_name=item.product.title,
-                    quantity=item.quantity,
-                    price_per_item=item.product.price
-                )
-
-                total_price += item.product.price * item.quantity # Посчитать общую цену
-
-            order.total_price = total_price # Записать общую цену
-            order.save() # Сохраняем изменения
-
-            cart_item.delete() # Удалить корзину
-
-            return order # "Отчитываемся" о том, что мы создали для frontend
-
-    except IntegrityError:
-        return "Ошибка! Товара недостаточно"
+def create_order(customer: CustomerProfile, shop: Shop, cart_items) -> Order:
+    """
+    Создает заказ, обновляет остатки товаров и очищает корзину.
+    Использует атомарную транзакцию для предотвращения Race Condition.
+    """
     
-def upload_product_images(product: Product, images: list) -> None:
+    # 1. Базовая проверка: есть ли что-то в корзине
+    if not cart_items.exists():
+        raise ValueError("Корзина пуста")
 
     with transaction.atomic():
+        # Создаем объект заказа (пока с нулевой ценой)
+        order = Order.objects.create(customer=customer, shop=shop)
+        
+        total_price = 0
+        order_items_to_create = []
 
-        is_first = not product.images.exists()
+        # Предварительно подгружаем продукты, чтобы избежать N+1 в цикле
+        # (если cart_items еще не вычислен)
+        items = cart_items.select_related('product')
 
-        if not isinstance(images, list):
-            images = [images]
+        for item in items:
+            product = item.product
+            quantity = item.quantity
 
-        if len(images) > 6:
-            raise ValueError("Слишком много фотографий!")
+            # 2. Атомарное обновление остатка с проверкой (Race Condition Protection)
+            # Мы обновляем только если остатка достаточно (stock__gte=quantity)
+            updated_count = Product.objects.filter(
+                id=product.id, 
+                stock__gte=quantity # Проверка прямо в БД
+            ).update(stock=F("stock") - quantity)
 
-        for img in images:
+            if updated_count == 0:
+                # Если ни одна строка не обновилась, значит товара не хватило
+                # Транзакция откатится автоматически из-за исключения
+                raise ValueError(f"Недостаточно товара '{product.title}' на складе")
+
+            # 3. Формируем список для bulk_create
+            order_items_to_create.append(
+                OrderItem(
+                    order=order,
+                    product=product,
+                    product_name=product.title,
+                    quantity=quantity,
+                    price_per_item=product.price
+                )
+            )
+
+            total_price += product.price * quantity
+
+        # 4. Оптимизация: создаем все позиции заказа одним запросом
+        OrderItem.objects.bulk_create(order_items_to_create)
+
+        # 5. Записываем финальную стоимость
+        order.total_price = total_price
+        order.save(update_fields=['total_price'])
+
+        # 6. Очищаем корзину
+        cart_items.delete()
+
+        return order
+    
+def upload_product_images(product: Product, images: list) -> None:
+    """
+    Надежная загрузка изображений.
+    Использует обычный цикл для гарантии сохранения файлов на диск/хранилище.
+    """
+    if not images:
+        return
+
+    if not isinstance(images, list):
+        images = [images]
+
+    if len(images) > 6:
+        raise ValueError("Слишком много фотографий! Максимум 6.")
+
+    with transaction.atomic():
+        # Проверяем наличие главного фото один раз перед циклом
+        has_main_image = product.images.filter(is_main=True).exists()
+
+        for i, img in enumerate(images):
+            # Делаем фото главным только если у товара ВООБЩЕ нет главного фото
+            # и это самое первое фото в текущем списке
+            is_main = False
+            if not has_main_image and i == 0:
+                is_main = True
 
             ProductImage.objects.create(
                 product=product,
                 image=img,
-                is_main=is_first
+                is_main=is_main
             )
-
-            is_first = False
         
 def change_main_image(image_id: int) -> None: # Айди фотки из api
 
