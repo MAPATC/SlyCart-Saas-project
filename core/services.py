@@ -97,7 +97,7 @@ def create_order(customer: CustomerProfile, shop: Shop, cart_items) -> Order:
 
             total_price += product.price * quantity
 
-        # 4. Оптимизация: создаем все позиции заказа одним запросом
+        # 4. Cоздаем все позиции заказа одним запросом
         OrderItem.objects.bulk_create(order_items_to_create)
 
         # 5. Записываем финальную стоимость
@@ -141,6 +141,9 @@ def upload_product_images(product: Product, images: list) -> None:
             )
         
 def change_main_image(image_id: int) -> None: # Айди фотки из api
+    """
+    Меняем главную фотографию
+    """
 
     with transaction.atomic():
         image_obj = ProductImage.objects.get(id=image_id)
@@ -149,7 +152,9 @@ def change_main_image(image_id: int) -> None: # Айди фотки из api
         image_obj.save(update_fields=['is_main'])
 
 def delete_image(image_id: int) -> None: # Айди фотки из api
-
+    """
+    Удаляем фотографию и если она была главной, то делаем первую попавшуюся главной
+    """
     with transaction.atomic():
         image_obj = ProductImage.objects.get(id=image_id)
         was_main = image_obj.is_main
@@ -163,6 +168,9 @@ def delete_image(image_id: int) -> None: # Айди фотки из api
                 change_main_image(first_image.id)
 
 def change_order_status(order: Order, new_status: str) -> Order:
+    """
+    Меняет статус заказа
+    """
 
     with transaction.atomic():
 
@@ -189,6 +197,9 @@ def create_user(telegram_id: int,
                 brand_name: str = None, 
                 phone_number: str = None,
                 tariff: Tariff = None) -> TelegramUser:
+      """
+      Создает пользователя в зависимости от роли
+      """
       
       with transaction.atomic():
 
@@ -216,7 +227,9 @@ def create_user(telegram_id: int,
         return tg_user
 
 def create_customer_profile(user: TelegramUser, phone_number: str) -> CustomerProfile:
-
+    """
+    Создает профиль покупателя
+    """
     with transaction.atomic():
 
         if not phone_number: 
@@ -235,7 +248,9 @@ def create_owner_profile(user: TelegramUser,
                          brand_name: str, 
                          tariff: Tariff = None, 
                          phone_number: str = None) -> OwnerProfile:
-    
+    """
+    Создает профиль продавца
+    """
     with transaction.atomic():
 
         if OwnerProfile.objects.filter(phone=phone_number).exists():
@@ -258,6 +273,9 @@ def create_owner_profile(user: TelegramUser,
         )
     
 def create_shop(user: OwnerProfile, name: str ,link: str = None) -> Shop:
+    """
+    Создает магазин
+    """
 
     with transaction.atomic():
 
@@ -291,6 +309,9 @@ def create_product(shop: Shop,
                    images: List[UploadedFile], 
                    stock: int,
                    is_active: bool = True) -> Product:
+    """
+    Создает товар для магазина
+    """
 
     with transaction.atomic():
 
