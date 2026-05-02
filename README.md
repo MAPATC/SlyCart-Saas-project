@@ -11,7 +11,7 @@
 ### 🌐 Frontend (Modern UI)
 ![React](https://img.shields.io/badge/React-darkblue?style=flat&logo=react&logoColor=blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-darkblue?style=flat&logo=TypeScript&logoColor=blue)
-![Vite](https://img.shields.io/badge/Vite-darkblue?style=flat&logo=Vite&logoColor=blue)
+![Next.js](https://img.shields.io/badge/Next.js-darkblue?style=flat&logo=Next.js&logoColor=blue)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-darkblue?style=flat&logo=TailwindCSS&logoColor=blue)
 
 ### 🤖 Telegram Integration
