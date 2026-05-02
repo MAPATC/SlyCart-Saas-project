@@ -5,13 +5,18 @@ import uuid
 from ninja import Field, Schema, ModelSchema
 from datetime import date
 from .models import TelegramUser, Shop, Product
+from enum import Enum
+
+class Roles(str, Enum):
+    customer: str
+    owner: str
 
 class TelegramUserIn(Schema): # Что мы будем вносить
     user_id: int
-    role: str
+    role: Roles
     phone_number: str
-    inn: str = None
-    brand_name: str = None
+    inn: str | None = None
+    brand_name: str | None = None
 
 
 class TelegramUserOut(ModelSchema): # Что мы будет отдавать в front(modelSchema лучше использовать для Out)

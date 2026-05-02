@@ -9,3 +9,4 @@ Thumbs.db
 .pytest_cache
 media
 seed_products.py
+saas-frontend
