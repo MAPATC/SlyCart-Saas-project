@@ -3,10 +3,10 @@
 ## 🛠 Tech Stack
 
 ### 🖥️ Backend & API
-![Python](https://img.shields.io/badge/python-brightgreen?style=flat&logo=python)
-![Django](https://img.shields.io/badge/django-brightgreen?style=flat&logo=django)
-![Django Ninja](https://img.shields.io/badge/django_ninja-brightgreen?style=flat&logo=django)
-![PostgreSQL](https://img.shields.io/badge/postgresql-brightgreen?style=flat&logo=postgresql&logoColor=blue)
+![Python](https://img.shields.io/badge/Python-brightgreen?style=flat&logo=python)
+![Django](https://img.shields.io/badge/Django-brightgreen?style=flat&logo=django)
+![Django Ninja](https://img.shields.io/badge/Django_ninja-brightgreen?style=flat&logo=django)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-brightgreen?style=flat&logo=postgresql&logoColor=blue)
 
 ### 🌐 Frontend (Modern UI)
 ![React](https://img.shields.io/badge/React-darkblue?style=flat&logo=react&logoColor=blue)
