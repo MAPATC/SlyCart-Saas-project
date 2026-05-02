@@ -1,156 +1,219 @@
 "use client"
 import { PatternFormat } from 'react-number-format';
-import { motion, AnimatePresence } from 'motion/react';
-import { useState } from 'react';
-import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, memo } from 'react';
+import { useTheme } from "next-themes";
+import { Button } from "@/components/ui/button";
 
+// --- ТИПИЗАЦИЯ ---
 type Role = 'customer' | 'owner' | null;
-type Confirmed = true | false;
 
-function Register() {
-    const [role, setRole] = useState<Role>(null);
-    const [isConfirmed, setIsConfirmed] = useState<Confirmed>(false);
-    const [phone, setPhone] = useState('');
+interface RoleButtonProps {
+    label: string;
+    emoji: string;
+    color: string;
+    onClick: () => void;
+}
 
-    const sendLog = async (action: string) => {
-        console.log(`[LOG]: User performed action: ${action}`);
+interface ActionButtonProps {
+    label: string;
+    onClick?: () => void;
+    disabled?: boolean;
+    variant?: 'primary' | 'secondary' | 'success' | 'ghost';
+    className?: string;
+}
+
+const springTransition = {
+    type: "spring",
+    stiffness: 400,
+    damping: 25 // Чуть увеличил демпфирование для стабильности
+} as const;
+
+// --- КОМПОНЕНТЫ ---
+
+const RoleButton = memo(({ label, emoji, color, onClick }: RoleButtonProps) => (
+    <motion.button
+        onClick={onClick}
+        style={{ willChange: "transform", backfaceVisibility: "hidden" }}
+        // Убрал transition-all из классов
+        className={`flex-1 rounded-3xl py-8 text-white font-bold text-lg cursor-pointer shadow-lg bg-linear-to-br ${color}`}
+        whileHover={{ scale: 1.05, y: -4 }}
+        whileTap={{ scale: 0.96 }}
+        transition={springTransition}
+    >
+        <span className="flex flex-col items-center gap-2 pointer-events-none">
+            <span className="text-4xl" role="img" aria-label={label}>{emoji}</span>
+            {label}
+        </span>
+    </motion.button>
+));
+RoleButton.displayName = 'RoleButton';
+
+const ActionButton = memo(({ label, onClick, disabled, variant = 'primary', className = '' }: ActionButtonProps) => {
+    const getVariantStyles = () => {
+        if (disabled) return 'bg-secondary text-muted-foreground cursor-not-allowed';
+        switch (variant) {
+            case 'success': return 'bg-linear-to-r from-emerald-500 to-teal-600 text-white shadow-md';
+            case 'secondary': return 'bg-secondary text-secondary-foreground';
+            case 'ghost': return 'bg-transparent text-muted-foreground/60 hover:text-foreground shadow-none';
+            default: return 'bg-blue-600 text-white shadow-md shadow-blue-500/20';
+        }
     };
 
     return (
-        <div className="relative flex h-screen w-full items-center justify-center bg-slate-100 overflow-hidden">
+        <motion.button
+            style={{ willChange: "transform", backfaceVisibility: "hidden" }}
+            onClick={!disabled ? onClick : undefined}
+            disabled={disabled}
+            whileHover={!disabled ? { scale: 1.02, y: -1 } : {}}
+            whileTap={!disabled ? { scale: 0.98 } : {}}
+            transition={springTransition}
+            // ВАЖНО: Убраны все transition-all и transition-colors
+            className={`w-full py-4 rounded-xl font-bold ${getVariantStyles()} ${className}`}
+        >
+            {label}
+        </motion.button>
+    );
+});
+ActionButton.displayName = 'ActionButton';
+
+export function ModeToggle() {
+    const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true) }, []);
+    if (!mounted) return <div className="w-10 h-10" />;
+
+    return (
+        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button
+                variant="outline"
+                size="icon"
+                className="rounded-xl border-border bg-card"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+                {theme === "dark" ? "🌙" : "☀️"}
+            </Button>
+        </motion.div>
+    );
+}
+
+// --- ОСНОВНОЙ ЭКРАН ---
+export default function Register() {
+    const [role, setRole] = useState<Role>(null);
+    const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
+    const [phone, setPhone] = useState('');
+    const [telegramId, setTelegramId] = useState('');
+
+    const resetSelection = () => {
+        setRole(null);
+        setIsConfirmed(false);
+    };
+
+    return (
+        <div className="relative flex h-screen w-full items-center justify-center bg-background overflow-hidden">
+
+            <div className="absolute top-6 right-6 z-50">
+                <ModeToggle />
+            </div>
 
             {/* ФОНОВЫЙ ПАТТЕРН */}
-            <div
-                className="fixed inset-0 z-0 pointer-events-none"
-                style={{
-                    backgroundImage: `url('/logo.png')`,
-                    backgroundSize: '135px 135px',
-                    backgroundRepeat: 'repeat',
-                    backgroundPosition: 'center',
-                    opacity: 0.05, // Чуть увеличил для видимости
-                    filter: 'blur(1px)',
-                }}
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]"
+                style={{ backgroundImage: `url('/logo.png')`, backgroundSize: '135px 135px', backgroundRepeat: 'repeat' }}
             />
 
-            <div className="relative z-10 w-full flex justify-center">
-                <AnimatePresence mode='wait'>
+            <div className="relative z-10 w-full flex justify-center px-4">
+                <AnimatePresence mode='wait' initial={false}>
 
-                    {/* STEP 1: CHOOSE ROLE */}
+                    {/* STEP 1: CHOICE */}
                     {!role && (
                         <motion.div
-                            key="role-selection"
-                            className="flex h-112.5 w-125 flex-col items-center rounded-[2.5rem] bg-white/80 backdrop-blur-xl p-12 shadow-2xl shadow-slate-300/50 border border-white"
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                            transition={{ duration: 0.4, ease: "easeOut" }}
+                            key="step-1"
+                            className="flex h-115 w-125 flex-col items-center rounded-[2.5rem] bg-card/80 backdrop-blur-xl p-12 shadow-2xl border border-border"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.05 }}
+                            transition={{ duration: 0.2 }}
                         >
-                            <motion.h2
-                                className="bg-linear-to-r from-blue-600 to-emerald-500 bg-clip-text text-4xl font-bold text-transparent mb-auto"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 }}
-                            >
+                            <h2 className="bg-linear-to-r from-blue-600 to-emerald-500 bg-clip-text text-4xl font-black text-transparent mb-auto">
                                 Выберите роль
-                            </motion.h2>
-
+                            </h2>
                             <div className="flex w-full gap-6 mt-auto">
-                                {/* Кнопки вынес бы в отдельный компонент, если их будет больше */}
-                                <RoleButton
-                                    label="Покупатель"
-                                    emoji="🛍️"
-                                    color="from-blue-500 to-indigo-600"
-                                    hoverColor="from-cyan-400 to-blue-500"
-                                    onClick={() => { setRole("customer"); sendLog("selected_customer_role"); }}
-                                />
-                                <RoleButton
-                                    label="Продавец"
-                                    emoji="📦"
-                                    color="from-emerald-500 to-teal-600"
-                                    hoverColor="from-green-400 to-emerald-500"
-                                    onClick={() => { setRole("owner"); sendLog("selected_owner_role"); }}
-                                />
+                                <RoleButton label="Покупатель" emoji="🛍️" color="from-blue-500 to-indigo-600" onClick={() => setRole("customer")} />
+                                <RoleButton label="Продавец" emoji="📦" color="from-emerald-500 to-teal-600" onClick={() => setRole("owner")} />
                             </div>
                         </motion.div>
                     )}
 
-                    {/* STEP 2: CONFIRMATION */}
+                    {/* STEP 2: CONFIRM */}
                     {role && !isConfirmed && (
                         <motion.div
-                            key="confirmation"
-                            className="flex h-112.5 w-125 flex-col items-center justify-center rounded-[2.5rem] bg-white p-12 shadow-2xl text-center border border-slate-100"
-                            initial={{ opacity: 0, x: 50 }}
+                            key="step-2"
+                            className="flex h-115 w-125 flex-col items-center justify-center rounded-[2.5rem] bg-card p-12 shadow-2xl border border-border"
+                            initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -50 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={springTransition}
                         >
-                            <div className="text-7xl mb-6 drop-shadow-lg">
-                                {role === 'owner' ? '📦' : '🛍️'}
-                            </div>
-                            <h2 className="text-3xl font-black mb-2 text-slate-800">Вы уверены?</h2>
-                            <p className="text-slate-500 mb-10">
-                                Ваш выбор: <span className="font-bold text-slate-700">{role === 'owner' ? 'Продавец' : 'Покупатель'}</span>
+                            <div className="text-7xl mb-6 drop-shadow-xl">{role === 'owner' ? '📦' : '🛍️'}</div>
+                            <h2 className="text-3xl font-black mb-2">Вы уверены?</h2>
+                            <p className="text-muted-foreground mb-10">
+                                Роль: <span className="font-bold text-foreground">{role === 'owner' ? 'Продавец' : 'Покупатель'}</span>
                             </p>
-
                             <div className="flex w-full gap-4">
-                                <button
-                                    onClick={() => setIsConfirmed(true)}
-                                    className="flex-2 py-4 bg-linear-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-bold shadow-lg hover:brightness-110 transition-all active:scale-95"
-                                >
-                                    Подтвердить
-                                </button>
-                                <button
-                                    onClick={() => setRole(null)}
-                                    className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all active:scale-95"
-                                >
-                                    Назад
-                                </button>
+                                <div className="flex-2">
+                                    <ActionButton label="Подтвердить" variant="success" onClick={() => setIsConfirmed(true)} />
+                                </div>
+                                <div className="flex-1">
+                                    <ActionButton label="Назад" variant="secondary" onClick={() => setRole(null)} />
+                                </div>
                             </div>
                         </motion.div>
                     )}
 
-                    {/* STEP 3: REGISTRATION */}
+                    {/* STEP 3: FORM */}
                     {isConfirmed && (
                         <motion.div
-                            key="registration-form"
-                            className="flex h-112.5 w-125 flex-col items-center rounded-[2.5rem] bg-white p-12 shadow-2xl border border-slate-100"
-                            initial={{ opacity: 0, scale: 0.9 }}
+                            key="step-3"
+                            className="flex h-115 w-125 flex-col items-center rounded-[2.5rem] bg-card p-10 shadow-2xl border border-border"
+                            initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 1.1 }}
+                            exit={{ opacity: 0, scale: 1.05 }}
+                            transition={springTransition}
                         >
-                            <h2 className="text-3xl font-black mb-2 italic">SlyCart</h2>
-                            <p className="text-slate-400 mb-8 text-center">Регистрация для роли {role === 'owner' ? 'продавца' : 'покупателя'}</p>
+                            <h2 className="text-3xl font-black mb-1 italic tracking-tighter">SlyCart</h2>
+                            <p className="text-muted-foreground mb-8 text-sm uppercase tracking-widest font-semibold opacity-70">
+                                {role === 'owner' ? 'Регистрация Продавца' : 'Регистрация Покупателя'}
+                            </p>
 
                             <div className="w-full space-y-4">
                                 <input
                                     type="number"
-                                    placeholder="Телеграм ID"
-                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-400 focus:ring-4 ring-blue-50/50 transition-all"
+                                    value={telegramId}
+                                    onChange={(e) => setTelegramId(e.target.value)}
+                                    placeholder="Ваш Телеграм ID"
+                                    className="w-full p-4 bg-secondary/50 border border-border rounded-xl outline-none focus:ring-2 ring-blue-500/20"
                                 />
                                 <PatternFormat
                                     format="+7 (###) ###-##-##"
                                     allowEmptyFormatting
                                     mask="_"
                                     value={phone}
-                                    onValueChange={(values) => setPhone(values.value)} // Сохранит только цифры: 79991234567
-                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-400 focus:ring-4 ring-blue-50/50 transition-all text-slate-700"
-                                    placeholder="Номер телефона"
+                                    onValueChange={(values) => setPhone(values.value)}
+                                    className="w-full p-4 bg-secondary/50 border border-border rounded-xl outline-none focus:ring-2 ring-blue-500/20"
                                 />
-                                <button className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors">
-                                    Создать аккаунт
-                                </button>
+                                <div className="pt-2">
+                                    <ActionButton label="Завершить регистрацию" />
+                                </div>
                             </div>
 
-                            <div className="m-auto py-6">
-                                <button
-                                    onClick={() => { setRole(null); setIsConfirmed(false); }}
-                                    className="mt-auto bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all active:scale-95 p-4"
-                                >
-                                    Отменить
-                                </button>
-
+                            <div className="mt-auto">
+                                <ActionButton
+                                    label="Отменить"
+                                    variant="ghost"
+                                    onClick={resetSelection}
+                                    className="text-[10px] uppercase tracking-[0.2em] py-1 opacity-50 hover:opacity-100 transition-opacity"
+                                />
                             </div>
-
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -158,28 +221,3 @@ function Register() {
         </div>
     );
 }
-
-// Вспомогательный компонент для кнопок выбора роли
-function RoleButton({ label, emoji, color, onClick }: any) {
-    return (
-        <motion.button
-            onClick={onClick}
-            className={`flex-1 rounded-3xl py-8 text-white font-bold text-lg cursor-pointer shadow-lg bg-linear-to-br ${color}`}
-            whileHover={{
-                scale: 1.05,
-                y: -5,
-                backgroundImage: `linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to))`
-            }}
-            whileTap={{ scale: 0.95 }}
-        >
-            <span className="flex flex-col items-center gap-2">
-                <span className="text-4xl">{emoji}</span>
-                {label}
-            </span>
-        </motion.button>
-    );
-}
-
-//TODO: 1) Unactive create button, 2) useMutation, 3) Success screen  
-
-export default Register;
