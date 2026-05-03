@@ -2,8 +2,12 @@
 import { PatternFormat } from 'react-number-format';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, memo } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+import { authApi, TelegramUser } from '@/lib/api';
+import { error } from 'console';
+
 
 // --- ТИПИЗАЦИЯ ---
 type Role = 'customer' | 'owner' | null;
@@ -104,6 +108,19 @@ export default function Register() {
     const [phone, setPhone] = useState('');
     const [telegramId, setTelegramId] = useState('');
 
+    const { mutate, isPending } = useMutation({
+        mutationFn: authApi.register,
+        // Внизу встроенный callback
+        onSuccess: (data) => {
+            console.log("Успешная регистрация!", data) // data это тип TelegramUser, TS сам прокинул тип. Это называется Type Inference 
+        },
+
+        onError: (error) => {
+            console.log("Ошибка регистрации!", error)
+        }
+
+    }); // не забудь в мутации сделать tg_id: Number(telegramId)
+
     const resetSelection = () => {
         setRole(null);
         setIsConfirmed(false);
@@ -190,6 +207,7 @@ export default function Register() {
                                     type="number"
                                     value={telegramId}
                                     onChange={(e) => setTelegramId(e.target.value)}
+                                    // e - событие, target - цель(input), value - значение(всегда string!!)
                                     placeholder="Ваш Телеграм ID"
                                     className="w-full p-4 bg-secondary/50 border border-border rounded-xl outline-none focus:ring-2 ring-blue-500/20"
                                 />
