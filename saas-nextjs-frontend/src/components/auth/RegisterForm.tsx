@@ -6,7 +6,6 @@ import { useMutation } from '@tanstack/react-query';
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { authApi, TelegramUser } from '@/lib/api';
-import { error } from 'console';
 
 
 // --- ТИПИЗАЦИЯ ---
