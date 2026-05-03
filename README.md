@@ -73,7 +73,7 @@
 5. **Применить миграции:** `python manage.py migrate`
 6. **Запустить сервер:** `python manage.py runserver`
 
-### ⚛️ Frontend (React + Vite)
+### ⚛️ Frontend (React + Next.js)
 1. **Перейти в папку:** `cd saas-nextjs-frontend`
 2. **Установить зависимости:** `npm install`
 3. **Запустить в режиме разработки:** `npm run dev`
