@@ -112,8 +112,8 @@ export default function Register() {
         mutationFn: authApi.register,
         // Внизу встроенный callback
         onSuccess: (data) => {
-            console.log("Успешная регистрация!", data) // data это тип TelegramUser, TS сам прокинул тип. Это называется Type Inference 
-        },
+            console.log("Успешная регистрация!", data)
+        },// data это тип TelegramUser, TS сам прокинул тип. Это называется Type Inference
 
         onError: (error) => {
             console.log("Ошибка регистрации!", error)
