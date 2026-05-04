@@ -109,8 +109,8 @@ class OwnerProfile(models.Model):
                                verbose_name="Тариф")
     
     brand_name = models.CharField(max_length=120,
-                                  null=False,
-                                  blank=False,
+                                  null=True,
+                                  blank=True,
                                   verbose_name="Название бренда")
     
     phone = PhoneNumberField(verbose_name="Номер телефона", 
