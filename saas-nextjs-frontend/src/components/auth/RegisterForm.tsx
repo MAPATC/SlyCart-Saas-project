@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { authApi } from '@/lib/api';
 import { RegisterSuccess } from './RegisterSuccess';
 
+
 // --- ТИПИЗАЦИЯ ---
 type Role = "customer" | "owner" | null;
 
