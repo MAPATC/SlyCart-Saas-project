@@ -1,15 +1,16 @@
 "use client"
 import { PatternFormat } from 'react-number-format';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, number } from 'framer-motion';
 import { useState, useEffect, memo } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { authApi, TelegramUser } from '@/lib/api';
+import { authApi } from '@/lib/api';
+import { RegisterSuccess } from './RegisterSuccess';
 
 
 // --- ТИПИЗАЦИЯ ---
-type Role = 'customer' | 'owner' | null;
+type Role = "customer" | "owner" | null;
 
 interface RoleButtonProps {
     label: string;
@@ -102,27 +103,49 @@ export function ModeToggle() {
 
 // --- ОСНОВНОЙ ЭКРАН ---
 export default function Register() {
+
     const [role, setRole] = useState<Role>(null);
     const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
     const [phone, setPhone] = useState('');
     const [telegramId, setTelegramId] = useState('');
+    const [isSubmitted, setSubmitted] = useState<boolean>(false);
 
     const { mutate, isPending } = useMutation({
         mutationFn: authApi.register,
         // Внизу встроенный callback
         onSuccess: (data) => {
-            console.log("Успешная регистрация!", data)
+            console.log("Успешная регистрация!", data);
+            setSubmitted(true);
         },// data это тип TelegramUser, TS сам прокинул тип. Это называется Type Inference
 
         onError: (error) => {
-            console.log("Ошибка регистрации!", error)
+            console.log("Ошибка регистрации!", error);
         }
 
     }); // не забудь в мутации сделать tg_id: Number(telegramId)
 
+    const handleRegister = () => {
+
+        if (!role || !telegramId || !phone) {
+            console.error("Не все поля заполнены!");
+            return; // Останавливаем выполнение, если role === null
+        };
+
+        mutate({
+            // ГЛАВНОЕ!!! Название полей должно быть таким же как и в Schemas!!!
+            user_id: Number(telegramId),
+            role: role, // Сделали проверку и теперь TS будет уверен в том, что role не будет null
+            phone_number: phone
+        })
+    }
+
     const resetSelection = () => {
         setRole(null);
         setIsConfirmed(false);
+    };
+
+    if (isSubmitted) {
+        return <RegisterSuccess />;
     };
 
     return (
@@ -219,7 +242,11 @@ export default function Register() {
                                     className="w-full p-4 bg-secondary/50 border border-border rounded-xl outline-none focus:ring-2 ring-blue-500/20"
                                 />
                                 <div className="pt-2">
-                                    <ActionButton label="Завершить регистрацию" />
+                                    <ActionButton
+                                        onClick={handleRegister}
+                                        disabled={isPending}
+                                        label={isPending ? "Загрузка..." : "Завершить регистрацию"}
+                                    />
                                 </div>
                             </div>
 
