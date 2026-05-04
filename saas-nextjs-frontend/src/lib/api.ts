@@ -1,17 +1,7 @@
 import axios from "axios";
+import { components } from "@/types/api";
 
-type Role = "customer" | "owner";
-// type подходит для Union(объединений). Одно конкретное значение из множества значений
-
-// interface - Merge(слияние). Если я напишу интерфейс с одним и тем же названием, 
-// но с разными значениями, то они объединятся в один
-export interface TelegramUser {
-    user_id: number,
-    role: Role,
-    phone_number: string,
-    brand_name?: string,
-    inn?: string
-}
+export type TelegramUserIn = components["schemas"]["TelegramUserIn"]
 
 const api = axios.create({
     baseURL: "http://127.0.0.1:8000/api/core",
@@ -26,9 +16,9 @@ export const authApi = {
     // (userData: TelegramUser) - аргумент функции
     // => стрелочная функция. Мы как будто передаем значение из параметра в тело функции
     // const { data } - деструктуризация. Чтобы сразу получить нужные нам данные
-    register: async (userData: TelegramUser) => {
+    register: async (userData: TelegramUserIn) => {
         // <TelegramUser> нужен для того, чтобы TS знал что ожидать внутри data
-        const { data, status } = await api.post<TelegramUser>("/register", userData);
+        const { data, status } = await api.post<TelegramUserIn>("/register", userData);
         console.log(status);
         return data;
     }
