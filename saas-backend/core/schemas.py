@@ -8,8 +8,8 @@ from .models import TelegramUser, Shop, Product
 from enum import Enum
 
 class Roles(str, Enum):
-    customer: str
-    owner: str
+    customer = "customer"
+    owner = "owner" 
 
 class TelegramUserIn(Schema): # Что мы будем вносить
     user_id: int
