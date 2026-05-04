@@ -6,7 +6,7 @@ type Role = "customer" | "owner";
 // interface - Merge(слияние). Если я напишу интерфейс с одним и тем же названием, 
 // но с разными значениями, то они объединятся в один
 export interface TelegramUser {
-    tg_id: number,
+    user_id: number,
     role: Role,
     phone_number: string,
     brand_name?: string,
@@ -28,7 +28,7 @@ export const authApi = {
     // const { data } - деструктуризация. Чтобы сразу получить нужные нам данные
     register: async (userData: TelegramUser) => {
         // <TelegramUser> нужен для того, чтобы TS знал что ожидать внутри data
-        const { data, status } = await api.post<TelegramUser>("/register/", userData);
+        const { data, status } = await api.post<TelegramUser>("/register", userData);
         console.log(status);
         return data;
     }
