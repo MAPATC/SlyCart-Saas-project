@@ -1,0 +1,649 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NinjaAPI",
+    "version": "1.0.0",
+    "description": ""
+  },
+  "paths": {
+    "/api/core/register": {
+      "post": {
+        "operationId": "core_api_create_user_endpoint",
+        "summary": "Create User Endpoint",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramUserOut"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TelegramUserIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/core/shop": {
+      "post": {
+        "operationId": "core_api_create_shop_endpoint",
+        "summary": "Create Shop Endpoint",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopOut"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/core/product": {
+      "post": {
+        "operationId": "core_api_create_product_endpoint",
+        "summary": "Create Product Endpoint",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductOut"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "images": {
+                    "items": {
+                      "format": "binary",
+                      "type": "string"
+                    },
+                    "title": "Images",
+                    "type": "array"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/ProductIn"
+                  }
+                },
+                "required": [
+                  "images",
+                  "data"
+                ],
+                "title": "MultiPartBodyParams",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/core/my-shops": {
+      "get": {
+        "operationId": "core_api_list_my_shops_endpoint",
+        "summary": "List My Shops Endpoint",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "user_id",
+            "schema": {
+              "title": "User Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ShopOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/core/shops/{shop_id}/products": {
+      "get": {
+        "operationId": "core_api_product_list_endpoint",
+        "summary": "Product List Endpoint",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "shop_id",
+            "schema": {
+              "format": "uuid",
+              "title": "Shop Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProductOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/core/product/{product_id}": {
+      "patch": {
+        "operationId": "core_api_edit_products_endpoint",
+        "summary": "Edit Products Endpoint",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "schema": {
+              "title": "Product Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductOut"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductPatch"
+              }
+            }
+          },
+          "required": true
+        }
+      },
+      "delete": {
+        "operationId": "core_api_delete_product_endpoint",
+        "summary": "Delete Product Endpoint",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "schema": {
+              "title": "Product Id",
+              "type": "integer"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "owner_id",
+            "schema": {
+              "title": "Owner Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/core/products": {
+      "get": {
+        "operationId": "core_api_list_products_endpoint",
+        "summary": "List Products Endpoint",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedProductOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TelegramUserOut": {
+        "properties": {
+          "user_id": {
+            "title": "ID телеграмм пользователя",
+            "type": "integer"
+          },
+          "role": {
+            "default": "customer",
+            "maxLength": 10,
+            "title": "Роль",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "title": "TelegramUserOut",
+        "type": "object"
+      },
+      "Roles": {
+        "enum": [
+          "customer",
+          "owner"
+        ],
+        "title": "Roles",
+        "type": "string"
+      },
+      "TelegramUserIn": {
+        "properties": {
+          "user_id": {
+            "title": "User Id",
+            "type": "integer"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Roles"
+          },
+          "phone_number": {
+            "title": "Phone Number",
+            "type": "string"
+          },
+          "inn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inn"
+          },
+          "brand_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand Name"
+          }
+        },
+        "required": [
+          "user_id",
+          "role",
+          "phone_number"
+        ],
+        "title": "TelegramUserIn",
+        "type": "object"
+      },
+      "ShopOut": {
+        "properties": {
+          "owner_id": {
+            "title": "Owner Id",
+            "type": "integer"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "shop_name": {
+            "maxLength": 100,
+            "title": "Название магазина",
+            "type": "string"
+          },
+          "shop_link": {
+            "title": "Ссылка (slug)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "owner_id",
+          "shop_name",
+          "shop_link"
+        ],
+        "title": "ShopOut",
+        "type": "object"
+      },
+      "ShopIn": {
+        "properties": {
+          "owner": {
+            "title": "Owner",
+            "type": "integer"
+          },
+          "shop_name": {
+            "title": "Shop Name",
+            "type": "string"
+          },
+          "shop_link": {
+            "title": "Shop Link",
+            "type": "string"
+          }
+        },
+        "required": [
+          "owner",
+          "shop_name"
+        ],
+        "title": "ShopIn",
+        "type": "object"
+      },
+      "ProductOut": {
+        "properties": {
+          "price": {
+            "example": "0.00",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,10}|(?=[\\d.]{1,13}0*$)\\d{0,10}\\.\\d{0,2}0*$)",
+            "title": "Price",
+            "type": "string"
+          },
+          "shop_id": {
+            "format": "uuid",
+            "title": "Shop Id",
+            "type": "string"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "ID"
+          },
+          "title": {
+            "maxLength": 100,
+            "title": "Название товара",
+            "type": "string"
+          },
+          "description": {
+            "title": "Описание товара",
+            "type": "string"
+          },
+          "stock": {
+            "default": 1,
+            "title": "Осталось товара",
+            "type": "integer"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Доступен ли товар",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "price",
+          "shop_id",
+          "title",
+          "description"
+        ],
+        "title": "ProductOut",
+        "type": "object"
+      },
+      "ProductIn": {
+        "properties": {
+          "shop": {
+            "format": "uuid",
+            "title": "Shop",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,8}|(?=[\\d.]{1,11}0*$)\\d{0,8}\\.\\d{0,2}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Price"
+          },
+          "stock": {
+            "exclusiveMinimum": 0,
+            "title": "Stock",
+            "type": "integer"
+          },
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "shop",
+          "user_id",
+          "title",
+          "description",
+          "price",
+          "stock"
+        ],
+        "title": "ProductIn",
+        "type": "object"
+      },
+      "ProductPatch": {
+        "properties": {
+          "user_id": {
+            "title": "User Id",
+            "type": "integer"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "stock": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stock"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          }
+        },
+        "required": [
+          "user_id",
+          "title",
+          "description",
+          "price",
+          "stock",
+          "is_active"
+        ],
+        "title": "ProductPatch",
+        "type": "object"
+      },
+      "Input": {
+        "properties": {
+          "limit": {
+            "default": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          }
+        },
+        "title": "Input",
+        "type": "object"
+      },
+      "PagedProductOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProductOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "count"
+        ],
+        "title": "PagedProductOut",
+        "type": "object"
+      }
+    }
+  },
+  "servers": []
+}
