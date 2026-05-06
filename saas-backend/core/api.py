@@ -4,9 +4,10 @@ from ninja.pagination import paginate
 from ninja.files import UploadedFile
 from typing import List
 from django.shortcuts import get_object_or_404
+from ninja_jwt.authentication import JWTAuth
 
 from .exceptions import NegativePriceError
-from .models import TelegramUser, OwnerProfile, Product, Shop
+from .models import OwnerProfile, Product, Shop
 from .services import create_user, create_shop, create_product
 from .schemas import (
     TelegramUserOut, 
@@ -126,3 +127,6 @@ def delete_product_endpoint(request, product_id: int, owner_id: int):
 
     return 204, None
 
+@core_router.get("/token", auth=JWTAuth())
+def jwt_token_auth(request):
+    return {"message": f"Привет, {request.user.username}, это данные только для своих!"}
