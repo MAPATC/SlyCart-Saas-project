@@ -3,7 +3,9 @@ from typing import Optional
 from pydantic import PositiveInt
 import uuid
 from ninja import Field, Schema, ModelSchema
-from datetime import date
+from ninja_jwt.tokens import RefreshToken
+from django.db.models import Q
+from ninja.errors import HttpError
 from .models import TelegramUser, Shop, Product
 from enum import Enum
 
@@ -72,3 +74,31 @@ class ProductPatch(Schema):
     price: Optional[Decimal] 
     stock: Optional[PositiveInt]
     is_active: Optional[bool]
+
+class MyTokenObtainPairSchema(Schema):
+
+    user_id: int
+    phone_number: str
+
+    def to_response_schema(self):
+        # Используем Q-объекты для реализации логики "ИЛИ" (OR) в SQL-запросе.
+        # Это позволяет одним запросом проверить наличие номера телефона 
+        # сразу в двух разных таблицах профилей (Customer и Owner), 
+        # связанных с пользователем через ForeignKey.
+        user = TelegramUser.objects.select_related("customer_profile", "owner_profile").filter(
+            Q(user_id=self.user_id) & 
+            (Q(customer_profile__phone=self.phone_number) | Q(owner_profile__phone=self.phone_number))
+        ).first()
+
+        # 2. Если пользователь не найден — кидаем ошибку
+        if not user:
+            raise HttpError(401, "Пользователь не найден или данные неверны")
+
+        # 3. Генерируем токены для найденного пользователя
+        refresh = RefreshToken.for_user(user)
+
+        return {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "user_id": user.user_id,
+        }
