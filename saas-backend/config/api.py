@@ -2,11 +2,13 @@ from datetime import datetime
 import json
 import uuid
 
-from ninja import NinjaAPI
+from ninja_extra import NinjaExtraAPI, api_controller, http_post
 from core.api import core_router
 from ninja.renderers import JSONRenderer
 from core.exceptions import UserAlreadyExistsError, PhoneNumberAlreadyTakenError
 from ninja.responses import NinjaJSONEncoder
+from ninja_jwt.schema import TokenObtainPairOutputSchema
+from core.schemas import MyTokenObtainPairSchema
 
 class UnicodeJSONRenderer(JSONRenderer):
     def render(self, request, data, *, response_status):
@@ -17,7 +19,7 @@ class UnicodeJSONRenderer(JSONRenderer):
         ).encode("utf-8")
 
 
-api = NinjaAPI(renderer=UnicodeJSONRenderer())
+api = NinjaExtraAPI(renderer=UnicodeJSONRenderer())
 
 @api.exception_handler(UserAlreadyExistsError)
 def user_already_exists_handler(request, exc):
@@ -53,7 +55,14 @@ def user_already_exists_handler(request, exc):
         status=400
     )
 
+@api_controller('/auth', tags=['Auth']) # Обязательно через декоратор!
+class MyTokenController:
+
+    @http_post("/pair", response=TokenObtainPairOutputSchema)
+    def obtain_token(self, user_token: MyTokenObtainPairSchema):
+        # Метод to_response_schema теперь содержит всю логику поиска и генерации
+        return user_token.to_response_schema()
 
 api.add_router("/core/", core_router)
-
+api.register_controllers(MyTokenController)
 
