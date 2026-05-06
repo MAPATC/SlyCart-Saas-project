@@ -1,14 +1,61 @@
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 import uuid # Для shop_id, order_id
 
+# Нам нужен менеджер, чтобы Django не ругался при создании суперпользователя
+class TelegramUserManager(BaseUserManager):
+    def create_user(self, user_id, password=None, **extra_fields):
+        if not user_id:
+            raise ValueError('Поле user_id должно быть заполнено')
+        
+        user = self.model(user_id=user_id, **extra_fields)
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password() # Обычным юзерам пароль не нужен
+            
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, user_id, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(user_id, password, **extra_fields)
+
 # Create your models here.
-class TelegramUser(models.Model):
+# Мы используем PermissionsMixin для интеграции с Django Admin (исправляет E019).
+class TelegramUser(AbstractBaseUser, PermissionsMixin):
 
     user_id = models.BigIntegerField(unique=True, 
                                      verbose_name="ID телеграмм пользователя")
+    
+    # Эти поля обязательны для AbstractBaseUser, чтобы Django понимал, что это юзер
+    password = models.CharField(max_length=128, null=True, blank=True) # Нам не нужен пароль, но чтобы не ругался, сделаем так
+    last_login = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    # Указываем, какое поле будет "логином" для Django
+    USERNAME_FIELD = 'user_id' 
+    REQUIRED_FIELDS = [] # При создании суперпользователя спросит только ID и пароль
+
+    objects = TelegramUserManager()
+
+    is_active = models.BooleanField(
+        default=True, 
+        verbose_name="Активен",
+        help_text="Снимите галочку, если хотите заблокировать пользователя без удаления."
+    )
+
+    is_staff = models.BooleanField(default=False, verbose_name="Статус персонала") # Для админки
 
     ROLE_CHOICES = [
         ('customer', 'Покупатель'),
