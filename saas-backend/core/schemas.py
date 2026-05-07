@@ -88,7 +88,7 @@ class MyTokenObtainPairSchema(Schema):
         user = TelegramUser.objects.select_related("customer_profile", "owner_profile").filter(
             Q(user_id=self.user_id) & 
             (Q(customer_profile__phone=self.phone_number) | Q(owner_profile__phone=self.phone_number))
-        ).first()
+        ).first() # Самое первое что нашли
 
         # 2. Если пользователь не найден — кидаем ошибку
         if not user:
