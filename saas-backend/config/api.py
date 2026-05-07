@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import uuid
+from django.http import JsonResponse 
 
 from ninja_extra import NinjaExtraAPI, api_controller, http_post
 from core.api import core_router
@@ -57,11 +58,36 @@ def user_already_exists_handler(request, exc):
 
 @api_controller('/auth', tags=['Auth']) # Обязательно через декоратор!
 class MyTokenController:
-
     @http_post("/pair", response=TokenObtainPairOutputSchema)
     def obtain_token(self, user_token: MyTokenObtainPairSchema):
         # Метод to_response_schema теперь содержит всю логику поиска и генерации
-        return user_token.to_response_schema()
+        auth_data = user_token.to_response_schema() # Получаем токен
+
+        response = JsonResponse({
+            "user_id": auth_data["user_id"],
+            "detail": "Successfully authenticated"
+        })
+
+        # Запекаем Access токен
+        response.set_cookie(
+            key="access",
+            value=auth_data["access"],
+            httponly=True,
+            secure=False,
+            samesite="Lax",
+            max_age=60 * 60
+        )
+        # Запекаем Refresh token
+        response.set_cookie(
+            key='refresh',
+            value=auth_data["refresh"],
+            httponly=True,
+            secure=False,
+            samesite='Lax',
+            max_age=60 * 60 * 24 * 7 # 7 дней
+        )
+
+        return response
 
 api.add_router("/core/", core_router)
 api.register_controllers(MyTokenController)
