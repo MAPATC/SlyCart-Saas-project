@@ -1,0 +1,34 @@
+from django.http import JsonResponse
+
+class CSRFTokenMiddleware:
+    """
+    Middleware для проверки CSRF-токена. 
+    Сравнивает токен из Cookie и специального заголовка.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # 1. Проверяем только "опасные" методы
+        if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+            
+            # Пропускаем ручку авторизации (там токена еще нет)
+            if request.path.endswith("/auth/pair"):
+                return self.get_response(request)
+
+            # 2. Достаем токены
+            csrf_cookie = request.COOKIES.get("csrf_token")
+            csrf_header = request.headers.get("X-CSRF-Token")
+
+            # 3. Валидация (логика "как лучше")
+            if not csrf_cookie or not csrf_header or csrf_cookie != csrf_header:
+                return JsonResponse(
+                    {
+                        "detail": "CSRF verification failed",
+                        "help": "Ensure X-CSRF-Token header matches csrf_token cookie."
+                    },
+                    status=403
+                )
+
+        # Если всё ок или метод безопасный (GET) — идем дальше
+        return self.get_response(request)
