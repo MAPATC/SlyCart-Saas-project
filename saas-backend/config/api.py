@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import uuid
 from django.http import JsonResponse 
+import os
 
 from ninja_extra import NinjaExtraAPI, api_controller, http_post
 from core.api import core_router
@@ -19,6 +20,8 @@ class UnicodeJSONRenderer(JSONRenderer):
             ensure_ascii=False
         ).encode("utf-8")
 
+DEBUG = os.getenv("DEBUG", "False") == "True" 
+# Если нет DEBUG, то значение False по умолчанию
 
 api = NinjaExtraAPI(renderer=UnicodeJSONRenderer())
 
@@ -63,6 +66,8 @@ class MyTokenController:
         # Метод to_response_schema теперь содержит всю логику поиска и генерации
         auth_data = user_token.to_response_schema() # Получаем токен
 
+        csrf_token = str(uuid.uuid4()) # Лучше перевести в string
+
         response = JsonResponse({
             "user_id": auth_data["user_id"],
             "detail": "Successfully authenticated"
@@ -72,9 +77,9 @@ class MyTokenController:
         response.set_cookie(
             key="access",
             value=auth_data["access"],
-            httponly=True,
-            secure=False,
-            samesite="Lax",
+            httponly=True, # Защита от XSS атака(межсайтовый код)
+            secure=not DEBUG,
+            samesite="Lax", # Защита от CSRF-атак(только на базовом уровне)
             max_age=60 * 60
         )
         # Запекаем Refresh token
@@ -82,9 +87,18 @@ class MyTokenController:
             key='refresh',
             value=auth_data["refresh"],
             httponly=True,
-            secure=False,
+            secure=not DEBUG, # Не могу через https, потому что нет SSL-сертификата
             samesite='Lax',
             max_age=60 * 60 * 24 * 7 # 7 дней
+        )
+        # Запекаем CSRF-токен
+        response.set_cookie(
+            key="csrf_token",
+            value=csrf_token,
+            httponly=False, # Здесь должен быть False, потому что фронту нужно будет его прочитать
+            secure=not DEBUG,
+            samesite="Lax",
+            max_age=60 * 60 * 24
         )
 
         return response
@@ -92,3 +106,4 @@ class MyTokenController:
 api.add_router("/core/", core_router)
 api.register_controllers(MyTokenController)
 
+# TODO: MiddleWare для сверки csrf токена

@@ -5,10 +5,14 @@ class CSRFTokenMiddleware:
     Middleware для проверки CSRF-токена. 
     Сравнивает токен из Cookie и специального заголовка.
     """
-    def __init__(self, get_response):
+    def __init__(self, get_response): # One-time configuration and initialization.
         self.get_response = get_response
 
     def __call__(self, request):
+
+        # Code to be executed for each request before
+        # the view (and later middleware) are called.
+
         # 1. Проверяем только "опасные" методы
         if request.method in ("POST", "PUT", "DELETE", "PATCH"):
             
@@ -29,6 +33,8 @@ class CSRFTokenMiddleware:
                     },
                     status=403
                 )
+        # Code to be executed for each request/response after
+        # the view is called.
 
         # Если всё ок или метод безопасный (GET) — идем дальше
         return self.get_response(request)

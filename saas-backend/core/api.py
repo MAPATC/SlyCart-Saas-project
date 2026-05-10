@@ -24,7 +24,7 @@ core_router = Router()
 # Эндпоинты (Endpoints) — это, по сути, «адреса», 
 # по которым твой фронтенд (или Telegram-бот) будет обращаться к твоему бэкенду за данными.
 
-@core_router.post("/register", response=TelegramUserOut) # Что то похожее на эндпоинт
+@core_router.post("/register", response=TelegramUserOut, tags=["POST"]) # Что то похожее на эндпоинт
 def create_user_endpoint(request, data: TelegramUserIn): # Что будет принимать функция
 
     user = create_user(
@@ -38,7 +38,7 @@ def create_user_endpoint(request, data: TelegramUserIn): # Что будет п�
     return user
     
 
-@core_router.post('/shop', response=ShopOut)
+@core_router.post('/shop', response=ShopOut, tags=["POST"])
 def create_shop_endpoint(request, data: ShopIn):
 
     owner = get_object_or_404(
@@ -54,7 +54,7 @@ def create_shop_endpoint(request, data: ShopIn):
 
     return shop
 
-@core_router.post("/product", response=ProductOut)
+@core_router.post("/product", response=ProductOut, tags=["POST"])
 def create_product_endpoint(request, data: ProductIn, images: List[UploadedFile] = File()):
 
     shop_obj = get_object_or_404(
@@ -75,18 +75,18 @@ def create_product_endpoint(request, data: ProductIn, images: List[UploadedFile]
 
     return product
 
-@core_router.get("/my-shops", response=List[ShopOut])
+@core_router.get("/my-shops", response=List[ShopOut], tags=["GET"])
 def list_my_shops_endpoint(request, user_id: int):
 
     return Shop.objects.filter(owner__owner__user_id=user_id).select_related('owner__owner')
 
-@core_router.get('/shops/{shop_id}/products', response=List[ProductOut])
+@core_router.get('/shops/{shop_id}/products', response=List[ProductOut], tags=["GET"])
 def product_list_endpoint(request, shop_id: uuid.UUID):
     # ninja легче работать напрямую через QuerySet, чем через переменные. Переменные могут вызывать ошибки
     return Product.objects.filter(shop=shop_id, is_active=True).select_related('shop') 
 
 
-@core_router.patch("/product/{product_id}", response=ProductOut)
+@core_router.patch("/product/{product_id}", response=ProductOut, tags=["PATCH"])
 def edit_products_endpoint(request, product_id: int , data: ProductPatch):
 
     product = get_object_or_404(
@@ -109,12 +109,14 @@ def edit_products_endpoint(request, product_id: int , data: ProductPatch):
 
     return product
 
-@core_router.get("/products", response=List[ProductOut])
+@core_router.get("/products", response=List[ProductOut], tags=["GET"])
 @paginate
 def list_products_endpoint(request):
     return Product.objects.all()
 
-@core_router.delete("/product/{product_id}", response={204: None})
+# @core_router.get("/products/{shop_name}", tags=["GET"])
+
+@core_router.delete("/product/{product_id}", response={204: None}, tags=["DELETE"])
 def delete_product_endpoint(request, product_id: int, owner_id: int):
     
     product = get_object_or_404(
@@ -127,6 +129,6 @@ def delete_product_endpoint(request, product_id: int, owner_id: int):
 
     return 204, None
 
-@core_router.get("/token", auth=JWTAuth())
+@core_router.get("/token", auth=JWTAuth(), tags=["Auth"])
 def jwt_token_auth(request):
     return {"message": f"Привет, {request.user.username}, это данные только для своих!"}
