@@ -12,7 +12,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from environs import Env
 
+env: Env = Env()
+env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-q_%m=ei1pjlx=n71sk+%)vt=&@m*qm#clfato4v1p*vtk4nm)='
+SECRET_KEY = f'django-insecure-{env.str("SECRET_KEY")}'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool(name="DEBUG")
 
 ALLOWED_HOSTS = []
 
@@ -54,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.CSRFTokenMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -134,3 +138,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 CORS_ALLOW_ALL_ORIGINS = True
 
 AUTH_USER_MODEL = 'core.TelegramUser'
+
+CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=not DEBUG)
+SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=not DEBUG)
