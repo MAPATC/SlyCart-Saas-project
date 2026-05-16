@@ -67,6 +67,11 @@ class MyTokenController:
         auth_data = user_token.to_response_schema() # Получаем токен
 
         csrf_token = str(uuid.uuid4()) # Лучше перевести в string
+        # Пример: response.set_cookie(key="csrf_token", value=csrf_token, httponly=False)
+        # Сервер кладет в куки случайную строку. 
+        # Важно: httponly=False. 
+        # Это значит, что твой React-код может прочитать эту куку. 
+        # Левый сайт (сайт с котиками) прочитать куки другого домена не может из-за политики безопасности браузеров (SOP).
 
         response = JsonResponse({
             "user_id": auth_data["user_id"],
@@ -77,7 +82,7 @@ class MyTokenController:
         response.set_cookie(
             key="access",
             value=auth_data["access"],
-            httponly=True, # Защита от XSS атака(межсайтовый код)
+            httponly=True, # Защита от XSS атака(межсайтовый код). Такие куки автоматически прикрепляются к браузеру
             secure=not DEBUG,
             samesite="Lax", # Защита от CSRF-атак(только на базовом уровне)
             max_age=60 * 60
