@@ -139,5 +139,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 AUTH_USER_MODEL = 'core.TelegramUser'
 
+# Эти настройки отвечают за то, чтобы куки передавались только по HTTPS.
+# Используем default=not DEBUG, чтобы на локалке (где нет HTTPS) всё работало,
+# а на реальном сервере (Production) защита включалась автоматически.
 CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=not DEBUG)
 SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=not DEBUG)
